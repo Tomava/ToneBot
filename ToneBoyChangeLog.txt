@@ -1,0 +1,73 @@
+17.4.2020:
+-Music commands are now a separate bot
++Added help to music bot
+
+19.4.2020:
+-Changed embedded message length to 2048 instead of 2000 as it is the max
+
+13.5.2020:
+-Bot will now make dirs if they don't exist
+
+4.6.2020:
+-Will now accept whole word "yes" as confirmation
+
+17.6.2020:
++Now has binds
++Bind list
++Bind remove
+-Will now show the name of the next song when skipping
+
+18.6.2020:
+-Bind list now shows all binds for a given link in one line
+-Now removes timestamps from bound links
+
+6.7.2020:
+-Fixed removing binds breaking the listOfBinds file
+
+9.7.2020:
+-Refreshes bind list after deleting bind
+
+11.7.2020:
++Added ;size command
+
+14.7.2020:
++";play random" plays a random song from binds
++";play ultrarandom" plays a random downloaded song
+
+15.7.2020:
+-Fixed not showing correct id in random and ultrarandom commands
+-Will now get id from link and if it already is downloaded skip trying to download it speeding things up significantly
++Added ;skip x to skip multiple songs
+-Can now skip while music is paused
+-In "youtu.be" links will now split the link from "?" instead of "&"
++Added shortened versions for frequent commands:
+    pl = play
+    sk = skip
+    r = random
+    ur = ultrarandom
+
+16.7.2020:
+-Optimised fetching song titles
+-;queue will now show current song
+-;queue x will now remove song number x from queue
++Bot will now keep track of how many times a song is played and when was the last time it was played
++;stats command shows these stats
+
+22.7.2020:
+-Always prints queue after every action
+
+24.7.2020:
++";list" command lists all downloaded songs
++";remove [title]" removes a song with given title from downloads
++";move x,y" will put xth song to yth place in queue
++";save" saves current queue
++";load" loads a saved queue
+-";play [title]" now works
+-";pl ur/r" are now ";ur" and ";r"
+-";ur/r x" adds x amount of songs (max 50)
+-";help", ";bind list" and ";stats" look much better
+
+25.8.2020:
++";next x" will add song x to be next in queue
+-Will now create archive.log if it doesn't exist
+-Moved some files to new locations
