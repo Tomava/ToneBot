@@ -630,7 +630,9 @@ class MyClient(discord.Client):
                 if toBeRemoved in binds:
                     url = binds.get(toBeRemoved)
                     del binds[toBeRemoved]
+                    # Removes this alias from dictionary
                     bindsByLink[url].remove(toBeRemoved)
+                    # If there are no other aliases for that link, remove the link
                     if len(bindsByLink[url]) == 0:
                         del bindsByLink[url]
                     with open(pathToBinds, "w") as file:
