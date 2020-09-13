@@ -30,7 +30,7 @@ listOfCommands = {";join": "Join the voice channel you're on",
                   ";bind remove/delete x": "Deletes bind x",
                   ";stats": "View listening stats",
                   ";list": "List all downloaded songs",
-                  ";remove [title]": "Removes a song with given title",
+                  ";remove [title]": "Removes a song with given title (requires Admin)",
                   ";save": "Saves the current queue",
                   ";load": "Loads a saved queue"
                   }
@@ -251,7 +251,34 @@ class MyClient(discord.Client):
             if id is None:
                 return
 
-        def addToStats(self, id, title):
+        title = await self.play(message.channel, voiceChannel, id, message)
+        await self.songQueue(message, print_this_command)
+
+    async def play(self, channel, voiceChannel, id, message):
+            # Find metadata
+            if id in list_of_titles_by_id.keys():
+                title = list_of_titles_by_id.get(id)
+            else:
+                try:
+                    with open(pathToSong + os.sep + id + '.info.json') as metaFile:
+                        file = json.load(metaFile)
+                        title = file['title']
+                except FileNotFoundError or PermissionError:
+                    title = "Title not found"
+            global currentSong
+            currentSong = title
+            print(title)
+            loop=asyncio.get_event_loop()
+            # Play the song that just got downloaded
+            for file in os.listdir(pathToSong):
+                if file.count(id) > 0 and file.count("json") == 0:
+                    voiceChannel.play(discord.FFmpegPCMAudio(pathToSong + os.sep + file), after=lambda e: loop.create_task(self.checkQueue(channel, voiceChannel, message)))
+                    voiceChannel.source = discord.PCMVolumeTransformer(voiceChannel.source)
+                    voiceChannel.source.volume = 0.25
+            await self.addToStats(id, title)
+            return title
+
+    async def addToStats(self, id, title):
             global songHistory
             idFound = False
             if songHistory != "":
@@ -280,45 +307,19 @@ class MyClient(discord.Client):
             with open(pathToDiscord + os.sep + "history.json", "w", encoding='utf-8') as file:
                 json.dump(songHistory, file, indent=2)
 
-        def checkQueue(self, channel, voiceChannel):
-            global songQueue
-            print("Checking queue")
-            if len(songQueue) > 0:
-                commands = str(songQueue[0]).split(":")
-                id = commands[0]
-                channel = commands[1]
-                songQueue.pop(0)
-                play(self, channel, voiceChannel, id)
-            else:
-                print("The queue is empty")
-                currentSong = ""
-
-        def play(self, channel, voiceChannel, id):
-            # Find metadata
-            if id in list_of_titles_by_id.keys():
-                title = list_of_titles_by_id.get(id)
-            else:
-                try:
-                    with open(pathToSong + os.sep + id + '.info.json') as metaFile:
-                        file = json.load(metaFile)
-                        title = file['title']
-                except FileNotFoundError or PermissionError:
-                    title = "Title not found"
-            global currentSong
-            currentSong = title
-            print(title)
-
-            # Play the song that just got downloaded
-            for file in os.listdir(pathToSong):
-                if file.count(id) > 0 and file.count("json") == 0:
-                    voiceChannel.play(discord.FFmpegPCMAudio(pathToSong + os.sep + file), after=lambda e: checkQueue(self, channel, voiceChannel))
-                    voiceChannel.source = discord.PCMVolumeTransformer(voiceChannel.source)
-                    voiceChannel.source.volume = 0.25
-            addToStats(self, id, title)
-            return title
-
-        title = play(self, message.channel, voiceChannel, id)
-        await self.songQueue(message, print_this_command)
+    async def checkQueue(self, channel, voiceChannel, message):
+        global songQueue
+        print("Checking queue")
+        if len(songQueue) > 0:
+            commands = str(songQueue[0]).split(":")
+            id = commands[0]
+            channel = commands[1]
+            songQueue.pop(0)
+            await self.play(channel, voiceChannel, id, message)
+            await self.songQueue(message, True)
+        else:
+            print("The queue is empty")
+            currentSong = ""
 
     async def playRandoms(self, message, which_random, how_many):
         random_links = []
@@ -530,7 +531,6 @@ class MyClient(discord.Client):
                     voiceChannel.stop()
                     # Wait so the queue gets time to refresh
                     await asyncio.sleep(0.8)
-                    await self.songQueue(message, True)
                 else:
                     await self.clearQueue(message)
                     global currentSong

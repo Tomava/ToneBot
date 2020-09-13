@@ -71,3 +71,6 @@
 +";next x" will add song x to be next in queue
 -Will now create archive.log if it doesn't exist
 -Moved some files to new locations
+
+13.9.2020:
+-Will now print queue after song finishes (finally)
