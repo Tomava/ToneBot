@@ -37,6 +37,7 @@ listOfCommands = {";join": "Join the voice channel you're on",
 
 embed_message_max_characters = 2048
 
+# Initiate global variables
 song_queue = []
 playable = True
 binds = {}
@@ -45,7 +46,8 @@ idle_time = 0
 list_of_titles_by_id = {}
 current_song = ""
 
-# Path to home folder
+# Paths to different directories
+# Will work on all platforms
 home = str(Path.home())
 path_to_discord = home + os.sep + "Discord"
 path_to_binds = path_to_discord + os.sep + "listOfBinds"
@@ -56,6 +58,8 @@ path_to_songs = path_to_discord + os.sep + "songs"
 #     pathToSong = pathToDiscord + os.sep + "songs"
 # else:
 #     pathToSong = pathToDiscord + os.sep + "songs"
+
+# Create the directories and files if they don't exist
 if not os.path.exists(path_to_songs):
     os.makedirs(path_to_songs)
 if not os.path.exists(path_to_queues):
@@ -76,6 +80,7 @@ else:
 if not os.path.exists(path_to_archive_log):
     with open(path_to_archive_log, "w") as file:
         file.close()
+# Get song titles and ids from their info-files
 with open(path_to_archive_log, "r") as file:
     for line in file.readlines():
         if line.count("youtube") > 0:
@@ -87,6 +92,7 @@ with open(path_to_archive_log, "r") as file:
             except FileNotFoundError and PermissionError:
                 title = "Title not found"
             list_of_titles_by_id.setdefault(song_id, title)
+# Read binds from a file
 with open(path_to_binds, "r") as file:
     for line in file.readlines():
         line = line.split(" ")
@@ -99,6 +105,11 @@ token = os.getenv('DISCORD_TOKEN')
 
 
 def format_bytes(size):
+    """
+    Gives correct ISO prefixes
+    :param size: int, size in bytes
+    :return: str, Returns size in appropriate format
+    """
     # 2**10 = 1024
     power = 2 ** 10
     n = 0
@@ -112,13 +123,22 @@ def format_bytes(size):
 class MyClient(discord.Client):
 
     async def on_ready(self):
+        """
+        Prints user information when ready and sets activity
+        :return: nothing
+        """
         print('Logged in as')
         print(self.user.name)
-        print(self.user.song_id)
-        print('------')
+        print(self.user.id)
+        print('-' * 20)
         await client.change_presence(activity=discord.Game(name=';help'))
 
     async def join_voice_channel(self, message):
+        """
+        Join the message author's voice channel or moves to it from another channel
+        :param message: MessageType, The message that initiated joining
+        :return: boolean, Return True if bot is able to join channel and False if not
+        """
         server = message.guild
         voice_channel = get(self.voice_clients, guild=server)
         try:
@@ -134,6 +154,11 @@ class MyClient(discord.Client):
             return False
 
     async def leave_voice_channel(self, message):
+        """
+        Leave currently connected voice channel from a given guild
+        :param message: MessageType, The message that initiated leaving
+        :return: nothing
+        """
         server = message.guild
         # channel = server.get_member(self.user.id).voice.channel
         voice_channel = get(self.voice_clients, guild=server)
@@ -150,6 +175,14 @@ class MyClient(discord.Client):
             await message.channel.send("I'm not connected to voice channel!")
 
     async def get_id(self, message, url, id_from_link, already_downloaded):
+        """
+
+        :param message:
+        :param url:
+        :param id_from_link:
+        :param already_downloaded:
+        :return:
+        """
         if id_from_link != "" and already_downloaded:
             song_id = str(id_from_link).strip()
         else:
@@ -432,7 +465,7 @@ class MyClient(discord.Client):
                 # Go through list and send as many messages as there are items on this list
                 for temp_list in list_of_lists:
                     embed = discord.Embed(title=("Current queue"), description=(temp_list))
-                    await message.channel.send(content="<@" + str(message.author.song_id) + ">", embed=embed)
+                    await message.channel.send(content="<@" + str(message.author.id) + ">", embed=embed)
 
     async def clear_queue(self, message):
         song_queue.clear()
@@ -617,7 +650,7 @@ class MyClient(discord.Client):
                     for tempList in listOfLists:
                         embed = discord.Embed(title=("Binds"),
                                               description=(tempList))
-                        await message.channel.send(content="<@" + str(message.author.song_id) + ">", embed=embed)
+                        await message.channel.send(content="<@" + str(message.author.id) + ">", embed=embed)
                     return
             if len(messageParts) != 3:
                 await message.channel.send("Your message wasn't formatted correctly")
@@ -735,7 +768,7 @@ class MyClient(discord.Client):
             for tempList in listOfLists:
                 embed = discord.Embed(title=("Top 15 songs"),
                                       description=(tempList))
-                await message.channel.send(content="<@" + str(message.author.song_id) + ">", embed=embed)
+                await message.channel.send(content="<@" + str(message.author.id) + ">", embed=embed)
 
         elif message_content.startswith(";list"):
             if not await self.check_dj(message):
@@ -764,7 +797,7 @@ class MyClient(discord.Client):
             for tempList in listOfLists:
                 embed = discord.Embed(title=("List of downloaded songs {}/{}".format(i, len(listOfLists))),
                                       description=(tempList))
-                await message.channel.send(content="<@" + str(message.author.song_id) + ">", embed=embed)
+                await message.channel.send(content="<@" + str(message.author.id) + ">", embed=embed)
                 i += 1
 
         elif message_content.startswith(";remove"):
