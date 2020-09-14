@@ -268,13 +268,11 @@ class MyClient(discord.Client):
 
         # If the link is valid and player is not playing anything do this
         else:
-
             # Join voice channel
             if not await self.join_voice_channel(message):
                 return
             # Get voice channel again as the first one could have failed if bot wasn't already joined
             voice_channel = get(self.voice_clients, guild=server)
-
             id = await self.get_id(message, url, id_from_link, already_downloaded)
             if id is None:
                 return
@@ -465,8 +463,7 @@ class MyClient(discord.Client):
                 # Go through list and send as many messages as there are items on this list
                 for temp_list in list_of_lists:
                     embed = discord.Embed(title=("Current queue"), description=(temp_list))
-                    await message.channel.send(content="<@" + str(message.author.id) + ">", embed=embed)
-
+                    await message.channel.send(content="", embed=embed)
     async def clear_queue(self, message):
         song_queue.clear()
         await message.channel.send("Cleared the queue")

@@ -75,3 +75,6 @@
 13.9.2020:
 -Will now print queue after song finishes (finally)
 -Renamed variables and functions like_this instead of likeThis
+
+14.9.2020:
+-Removed tagging from queue function
