@@ -915,7 +915,7 @@ class MyClient(discord.Client):
                 message.content.split(" ")[1:]).strip())
             if url is not None:
                 await self.play_song(message, url, False)
-            await self.move_to_index(message, len(song_queue), 1)
+                await self.move_to_index(message, len(song_queue), 1)
 
 
 client = MyClient()
