@@ -16,3 +16,9 @@ Todo Toneboy:
 /Command to show the amount of songs played in total
 /Save custom queues
 /Add arguments to ;stats to show dates
+/;find x to find songs containing x
+
+Split into multiple files:
+    Initialize variables and paths and make dirs
+    On message
+    Others

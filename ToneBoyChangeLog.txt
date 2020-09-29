@@ -78,3 +78,6 @@
 
 14.9.2020:
 -Removed tagging from queue function
+
+29.9.2020:
+-Fixed youtube link cleaner to use correct splitting character based on the link

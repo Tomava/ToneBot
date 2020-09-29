@@ -464,6 +464,7 @@ class MyClient(discord.Client):
                 for temp_list in list_of_lists:
                     embed = discord.Embed(title=("Current queue"), description=(temp_list))
                     await message.channel.send(content="", embed=embed)
+
     async def clear_queue(self, message):
         song_queue.clear()
         await message.channel.send("Cleared the queue")
@@ -685,10 +686,11 @@ class MyClient(discord.Client):
                 return
 
             removeFromLink = ["list=", "index=", "t="]
-            if url.count("youtu.be") > 0:
-                parts = url.split("?")
+            if url.count("youtube.com") > 0:
+                split_character = "&"
             else:
-                parts = url.split("&")
+                split_character = "?"
+            parts = url.split(split_character)
             # Create a second list where we remove stuff from
             tempParts = parts.copy()
             for part in parts:
@@ -700,7 +702,7 @@ class MyClient(discord.Client):
             # Creating the new link
             for part in tempParts:
                 if i > 0:
-                    newLink = newLink + "&" + part
+                    newLink = newLink + split_character + part
                 else:
                     newLink = part
                 i += 1
