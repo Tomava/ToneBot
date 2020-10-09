@@ -45,6 +45,7 @@ binds_by_link = {}
 idle_time = 0
 list_of_titles_by_id = {}
 current_song = ""
+MAX_SONG_QUEUE_LENGTH = 250
 
 # Paths to different directories
 # Will work on all platforms
@@ -398,7 +399,8 @@ class MyClient(discord.Client):
     async def add_to_queue(self, channel, url, id, message, print_this_command):
         global song_queue
         # Id to identify song and channel to send message to channel where song was requested
-        song_queue.append(id + ":" + str(channel))
+        if len(song_queue) < MAX_SONG_QUEUE_LENGTH:
+            song_queue.append(id + ":" + str(channel))
         if print_this_command:
             await self.print_song_queue(message, True)
 

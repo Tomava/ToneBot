@@ -81,3 +81,6 @@
 
 29.9.2020:
 -Fixed youtube link cleaner to use correct splitting character based on the link
+
+9.10.2020:
+-Added maximum queue length (250)
