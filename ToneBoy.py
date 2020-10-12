@@ -43,7 +43,7 @@ class MyClient(discord.Client):
         print('-' * 20)
         await client.change_presence(activity=discord.Game(name=';help'))
 
-    async def join_voice_channel(self, message):
+    async def join_voice_channel(self, message, print_errors):
         """
         Join the message author's voice channel or moves to it from another channel
         :param message: MessageType, The message that initiated joining
@@ -60,7 +60,8 @@ class MyClient(discord.Client):
                 await channel.connect()
             return True
         except AttributeError:
-            await message.channel.send("You're not connected to voice channel")
+            if print_errors:
+                await message.channel.send("You're not connected to voice channel")
             return False
 
     async def leave_voice_channel(self, message):
@@ -179,7 +180,7 @@ class MyClient(discord.Client):
         # If the link is valid and player is not playing anything do this
         else:
             # Join voice channel
-            if not await self.join_voice_channel(message):
+            if not await self.join_voice_channel(message, print_this_command):
                 return
             # Get voice channel again as the first one could have failed if bot wasn't already joined
             voice_channel = get(self.voice_clients, guild=server)
@@ -430,7 +431,7 @@ class MyClient(discord.Client):
         elif message_content.startswith(';join'):
             if not await self.check_dj(message):
                 return
-            await self.join_voice_channel(message)
+            await self.join_voice_channel(message, True)
 
         elif message_content.startswith(';leave') or message_content.startswith(';stop'):
             if not await self.check_dj(message):

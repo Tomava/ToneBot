@@ -87,3 +87,4 @@
 
 12.10.2020:
 -Made configurations be in a different file
+-Will no longer spam message if user is not connected to voice channel
