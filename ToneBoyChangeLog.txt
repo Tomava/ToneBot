@@ -84,3 +84,6 @@
 
 9.10.2020:
 -Added maximum queue length (250)
+
+12.10.2020:
+-Made configurations be in a different file
