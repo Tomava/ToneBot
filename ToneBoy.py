@@ -222,12 +222,7 @@ class MyClient(discord.Client):
         if id in list_of_titles_by_id.keys():
             title = list_of_titles_by_id.get(id)
         else:
-            try:
-                with open(path_to_songs + os.sep + id + '.info.json') as metaFile:
-                    file = json.load(metaFile)
-                    title = file['title']
-            except FileNotFoundError or PermissionError:
-                title = "Title not found"
+            title = await self.get_song_title(id)
         global current_song
         current_song = title
         print(title)
@@ -418,13 +413,8 @@ class MyClient(discord.Client):
                 for song in song_queue:
                     # Get song id
                     song = str(song).split(":")[0]
-                    try:
-                        # Get title
-                        with open(path_to_songs + os.sep + song + '.info.json') as metaFile:
-                            file = json.load(metaFile)
-                            title = file['title']
-                    except FileNotFoundError and PermissionError:
-                        title = "Title not found"
+                    # Get song title
+                    title = await self.get_song_title(song)
                     # Craft message
                     this_message_to_send = ("```" + str(index) + ": " + title + "\n```")
                     # Make sure this message doesn't exceed 2000 characters
@@ -917,6 +907,24 @@ class MyClient(discord.Client):
             if url is not None:
                 await self.play_song(message, url, False)
                 await self.move_to_index(message, len(song_queue), 1)
+
+        elif message_content.startswith(";index"):
+            if not await self.check_dj(message):
+                return
+            if len(message_content) > 1:
+                try:
+                    i = int(message_content.split(" ")[1])
+                except ValueError:
+                    return await message.channel.send("Your message wasn't formatted correctly. Use \"index x\"")
+                if 0 < i <= len(list_of_titles_by_id):
+                    url = "https://www.youtube.com/watch?v=" + list(list_of_titles_by_id.keys())[i - 1]
+                elif -len(list_of_titles_by_id) <= i < 0:
+                    url = "https://www.youtube.com/watch?v=" + list(list_of_titles_by_id.keys())[i]
+                    i = len(list_of_titles_by_id) - (abs(i) - 1)
+                else:
+                    return await message.channel.send(f"Index must be between 1 and {len(list_of_titles_by_id)}")
+                await message.channel.send(f"Playing song number {i} from {len(list_of_titles_by_id)} songs")
+                await self.play_song(message, url, True)
 
 
 client = MyClient()

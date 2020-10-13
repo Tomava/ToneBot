@@ -94,3 +94,4 @@
 -Playing random songs from storage will no longer go through archive file every time
 -history.json will now correctly show unicode characters
 -";remove" will now correctly error if the song is currently playing and not delete the info.json
++";index x" plays a song with the index x from the list of downloaded songs

@@ -17,9 +17,7 @@ Todo Toneboy:
 /Save custom queues
 /Add arguments to ;stats to show dates
 /;find x to find songs containing x
-/json.dump(list, file, indent=2, ensure_ascii=False)
 
 Split into multiple files:
-    Initialize variables and paths and make dirs
     On message
     Others

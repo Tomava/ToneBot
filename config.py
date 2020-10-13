@@ -6,6 +6,7 @@ listOfCommands = {";join": "Join the voice channel you're on",
                   ";play / ;pl x": "Play the song x (x can be bind, youtube url or youtube title)",
                   ";random x / ;r x": "Play a random song or x amount of random songs from binds",
                   ";ultrarandom x / ;ur x": "Play a random downloaded song or x amount of random downloaded songs",
+                  ";index x": "Play a song with the index x from the list of downloaded songs",
                   ";next x": "Adds the song x to be next in queue",
                   ";play / ;pl": "Resume playing paused music",
                   ";pause": "Pause music",
@@ -30,13 +31,12 @@ listOfCommands = {";join": "Join the voice channel you're on",
 
 # Initiate global variables
 EMBED_MESSAGE_MAX_CHARACTERS = 2048
+MAX_SONG_QUEUE_LENGTH = 250
 song_queue = []
-playable = True
 binds = {}
 binds_by_link = {}
 list_of_titles_by_id = {}
 current_song = ""
-MAX_SONG_QUEUE_LENGTH = 250
 
 # Paths to different directories
 # Will work on all platforms
