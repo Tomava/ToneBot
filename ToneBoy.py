@@ -85,42 +85,64 @@ class MyClient(discord.Client):
         else:
             await message.channel.send("I'm not connected to voice channel!")
 
-    async def get_id(self, message, url, id_from_link, already_downloaded):
+    async def check_id(self, message, url, id_from_link, print_this_command):
         """
-
-        :param message:
-        :param url:
-        :param id_from_link:
-        :param already_downloaded:
-        :return:
+        Downloads song with given id if it's not already downloaded and there's enough room. Else just returns the id
+        :param message: MessageType, For sending error message and to pass it to download_song
+        :param url: str, Url of wanted song (needed for downloading it)
+        :param id_from_link: str, Id of wanted song
+        :param print_this_command: bool, If true will print error messages
+        :return: str, Valid song id, None if doesn't exist
         """
-        if id_from_link != "" and already_downloaded:
-            song_id = str(id_from_link).strip()
-        else:
+        song_id = None
+        if id_from_link not in list_of_titles_by_id:
+            # Not playable, if this command is currently removing songs from directory
+            rootDirectory = Path(path_to_songs)
+            # Sum of file sizes in directory
+            size = sum(f.stat().st_size for f in rootDirectory.glob('**/*') if f.is_file())
+            i = 0
+            # If there are more than 50 GB of songs don't do anything
+            if size >= 50000000000:
+                if print_this_command:
+                    await message.channel.send("There are already too many files. Remove them manually.")
+                return
             song_id = str(await self.download_song(url, message)).strip()
             if song_id == "None":
                 return None
-            if song_id not in list_of_titles_by_id:
-                list_of_titles_by_id.setdefault(song_id.strip(), await self.get_song(song_id.strip()))
+            list_of_titles_by_id.setdefault(song_id.strip(), await self.get_song_title(song_id.strip()))
+        elif id_from_link != "":
+            song_id = str(id_from_link).strip()
         return song_id
 
     async def get_url(self, message, key_word):
+        """
+        Checks if given key word is a bound word or a title of already downloaded song. If neither is true checks if given
+        link contains "youtu" to check it's a valid youtube link
+        :param message: MessageType, For sending error message
+        :param key_word: str, Can be bind, link or a song title
+        :return: str, Url of a song
+        """
         global list_of_titles_by_id
         url = key_word
-        if key_word.count("youtu") == 0:
-            if key_word in binds.keys():
-                url = binds.get(key_word)
-            # Try to make a link
-            elif key_word in list_of_titles_by_id.values():
-                inverted_dict = {value: key for key, value in list_of_titles_by_id.items()}
-                this_id = inverted_dict.get(key_word)
-                url = "https://www.youtube.com/watch?v=" + this_id
-            else:
-                await message.channel.send("That's not a valid url")
-                return None
+        if key_word in binds.keys():
+            url = binds.get(key_word)
+        # Check if key_word is a title of already downloaded song
+        elif key_word in list_of_titles_by_id.values():
+            inverted_dict = {value: key for key, value in list_of_titles_by_id.items()}
+            this_id = inverted_dict.get(key_word)
+            url = "https://www.youtube.com/watch?v=" + this_id
+        elif key_word.count("youtu") == 0:
+            await message.channel.send("That's not a valid url")
+            return None
         return url
 
     async def download_song(self, url, message):
+        """
+        Downloads a song with given url
+        :param url: str, Url of a song
+        :param message: MessageType, For sending error message
+        :return: str, Id of the downloaded song
+        """
         # Youtube-dl arguments
         ydl_opts = {
             'outtmpl': path_to_songs + os.sep + '%(id)s.%(ext)s',
@@ -149,32 +171,28 @@ class MyClient(discord.Client):
         return id
 
     async def play_song(self, message, url, print_this_command):
+        """
+        Makes everything ready for play to play a song with given url
+        :param message: MessageType, Passed to various other functions
+        :param url: str, Url of a song
+        :param print_this_command: bool, If true, will send messages to server after finishing or in case of errors.
+        Passed to various other functions
+        :return: nothing
+        """
         server = message.guild
         id_from_link = ""
-        already_downloaded = False
         if url.count("youtu.be") > 0:
             id_from_link = url.split("/")[-1].split("?")[0].strip()
         elif url.count("youtube.com") > 0:
             id_from_link = url.split("/")[-1].split("&")[0].replace("watch?v=", "").strip()
-        if id_from_link in list_of_titles_by_id:
-            already_downloaded = True
 
-        if not already_downloaded:
-            # Not playable, if this command is currently removing songs from directory
-            rootDirectory = Path(path_to_songs)
-            # Sum of file sizes in directory
-            size = sum(f.stat().st_size for f in rootDirectory.glob('**/*') if f.is_file())
-            i = 0
-            # If there are more than 50 GB of songs remove all of them and archive.log
-            if size >= 50000000000:
-                return await message.channel.send("There are already too many files. Remove them manually.")
         voice_channel = get(self.voice_clients, guild=server)
         # If the player is already playing something, add the song to the queue
         if voice_channel and voice_channel.is_playing():
             # If already playing something add song to queue
-            id = await self.get_id(message, url, id_from_link, already_downloaded)
+            id = await self.check_id(message, url, id_from_link, print_this_command)
             if id is not None:
-                await self.add_to_queue(message.channel, url, id, message, print_this_command)
+                await self.add_to_queue(message.channel, id, message, print_this_command)
             return
 
         # If the link is valid and player is not playing anything do this
@@ -184,14 +202,22 @@ class MyClient(discord.Client):
                 return
             # Get voice channel again as the first one could have failed if bot wasn't already joined
             voice_channel = get(self.voice_clients, guild=server)
-            id = await self.get_id(message, url, id_from_link, already_downloaded)
+            id = await self.check_id(message, url, id_from_link, print_this_command)
             if id is None:
                 return
 
-        title = await self.play(message.channel, voice_channel, id, message)
+        await self.play(voice_channel, id, message)
         await self.print_song_queue(message, print_this_command)
 
-    async def play(self, channel, voice_channel, id, message):
+    async def play(self, voice_channel, id, message):
+        """
+        Plays a song with given id
+        :param voice_channel: VoiceChannel, Voice channel to which the song requester was connected to
+        :param id: str, Id of the song
+        :param message: MessageType, Used to get text channel where the song was requested at.
+        Passed to check_queue after song finishes
+        :return: nothing
+        """
         # Find metadata
         if id in list_of_titles_by_id.keys():
             title = list_of_titles_by_id.get(id)
@@ -210,13 +236,19 @@ class MyClient(discord.Client):
         for file in os.listdir(path_to_songs):
             if file.count(id) > 0 and file.count("json") == 0:
                 voice_channel.play(discord.FFmpegPCMAudio(path_to_songs + os.sep + file),
-                                   after=lambda e: loop.create_task(self.check_queue(channel, voice_channel, message)))
+                                   after=lambda e: loop.create_task(self.check_queue(voice_channel, message)))
                 voice_channel.source = discord.PCMVolumeTransformer(voice_channel.source)
                 voice_channel.source.volume = 0.25
         await self.add_to_stats(id, title)
-        return title
+        return
 
     async def add_to_stats(self, id, title):
+        """
+        Adds played song to the stats file
+        :param id: str, Id of a given song
+        :param title: str, Title of a given song
+        :return: nothing
+        """
         global song_history
         id_found = False
         if song_history != "":
@@ -246,9 +278,15 @@ class MyClient(discord.Client):
             else:
                 history_file.writelines(lines)
         with open(path_to_discord + os.sep + "history.json", "w", encoding='utf-8') as history_file:
-            json.dump(song_history, history_file, indent=2)
+            json.dump(song_history, history_file, indent=2, ensure_ascii=False)
 
-    async def check_queue(self, channel, voice_channel, message):
+    async def check_queue(self, voice_channel, message):
+        """
+        Plays the next song in queue and prints the queue
+        :param voice_channel: VoiceChannel, Voice channel to which the song requester was connected to. Passed to play
+        :param message: MessageType, Used to get text channel where the song was requested at. Passed to print_song_queue
+        :return: nothing
+        """
         global song_queue
         print("Checking queue")
         if len(song_queue) > 0:
@@ -256,30 +294,33 @@ class MyClient(discord.Client):
             id = commands[0]
             channel = commands[1]
             song_queue.pop(0)
-            await self.play(channel, voice_channel, id, message)
+            await self.play(voice_channel, id, message)
             await self.print_song_queue(message, True)
         else:
             print("The queue is empty")
-            currentSong = ""
+            current_song = ""
 
     async def play_randoms(self, message, which_random, how_many):
+        """
+        Plays how_many amount of random songs according to which_random
+        :param message: MessageType, For error messages
+        :param which_random: str, Either "ultrarandom" or "random". Decides if song is played from all downloaded songs
+        or from binds
+        :param how_many: int, How many songs to play (1 - 50)
+        :return: nothing
+        """
         random_links = []
         if which_random == "ultrarandom":
-            with open(path_to_archive_log, "r") as archive_file:
-                lines = []
-                for line in archive_file.readlines():
-                    if line.count("youtube") > 0:
-                        lines.append(str(line).split(" ")[1])
-            if len(lines) == 0:
+            song_amount = len(list_of_titles_by_id)
+            for number in range(how_many):
+                i = random.randint(0, (len(list_of_titles_by_id) - 1))
+                url = "https://www.youtube.com/watch?v=" + list(list_of_titles_by_id.keys())[i]
+                random_links.append(url)
+            if len(list_of_titles_by_id) == 0:
                 await message.channel.send("There are no downloaded songs from youtube")
                 return
-            for number in range(how_many):
-                i = random.randint(0, (len(lines) - 1))
-                linkEnd = str(lines[i])
-                url = "https://www.youtube.com/watch?v=" + linkEnd
-                random_links.append(url)
-            await message.channel.send("Playing song number {} from {} songs".format(i + 1, len(lines)))
         elif which_random == "random":
+            song_amount = len(binds)
             if len(binds) == 0:
                 await message.channel.send("There are no binds")
                 return
@@ -287,7 +328,10 @@ class MyClient(discord.Client):
                 i = random.randint(0, (len(binds_by_link) - 1))
                 url = list(binds_by_link.keys())[i]
                 random_links.append(url)
-            await message.channel.send("Playing song number {} from {} songs".format(i + 1, len(binds_by_link)))
+        if how_many == 1:
+            await message.channel.send(f"Playing song number {i + 1} from {song_amount} songs")
+        else:
+            await message.channel.send(f"Playing {how_many} songs from {song_amount} songs")
         i = 1
         for url in random_links:
             if i == len(random_links):
@@ -296,7 +340,12 @@ class MyClient(discord.Client):
                 await self.play_song(message, url, False)
             i += 1
 
-    async def get_song(self, id):
+    async def get_song_title(self, id):
+        """
+        Gets the title of a given song by id from it's info.json file
+        :param id: str, Given song id
+        :return: str, Title of the song
+        """
         try:
             # Get title
             with open(path_to_songs + os.sep + id + '.info.json') as metaFile:
@@ -306,15 +355,29 @@ class MyClient(discord.Client):
             title = "Title not found"
         return title
 
-    async def add_to_queue(self, channel, url, id, message, print_this_command):
+    async def add_to_queue(self, channel, id, message, print_this_command):
+        """
+        Adds a given song to the queue if song queue is not full
+        :param channel: VoiceChannel, Voice channel where the song was requested to
+        :param id: str, Id of the wanted song
+        :param message: MessageType, Passed to print_song_queue to print the queue
+        :param print_this_command: bool, Decided if song queue gets printed to text channel
+        :return: nothing
+        """
         global song_queue
         # Id to identify song and channel to send message to channel where song was requested
         if len(song_queue) < MAX_SONG_QUEUE_LENGTH:
             song_queue.append(id + ":" + str(channel))
-        if print_this_command:
-            await self.print_song_queue(message, True)
+        await self.print_song_queue(message, print_this_command)
 
     async def move_to_index(self, message, from_where, to_where):
+        """
+        Moves a song from one index to another in the song queue if both indexes are valid
+        :param message: MessageType, Passed to print_song_queue to print the queue
+        :param from_where: int, Index of a song to move
+        :param to_where: int, Index of a song to move
+        :return: nothing
+        """
         global song_queue
         from_where -= 1
         to_where -= 1
@@ -326,6 +389,12 @@ class MyClient(discord.Client):
         await self.print_song_queue(message, True)
 
     async def print_song_queue(self, message, print_this_command):
+        """
+        Prints the current song queue if given boolean is true
+        :param message: MessageType, Used to identify text channel where to send message
+        :param print_this_command: If false, doesn't do anything
+        :return: nothing
+        """
         if print_this_command:
             message_to_send = ""
             # List of messages to send
@@ -378,10 +447,20 @@ class MyClient(discord.Client):
                     await message.channel.send(content="", embed=embed)
 
     async def clear_queue(self, message):
+        """
+        Clears the song queue and send a notification about it
+        :param message: MessageType, Used to identify text channel where to send message
+        :return: nothing
+        """
         song_queue.clear()
         await message.channel.send("Cleared the queue")
 
     async def check_dj(self, message):
+        """
+        Checks if given message's author has a role called "DJ"
+        :param message: MessageType, Used to identify author
+        :return: bool, True if the author is "DJ"
+        """
         dj = False
         for role in message.author.roles:
             if role.name == "DJ":
@@ -391,6 +470,11 @@ class MyClient(discord.Client):
         return dj
 
     async def check_admin(self, message):
+        """
+        Checks if given message's author has a role called "Admin"
+        :param message: MessageType, Used to identify author
+        :return: bool, True if the author is "Admin"
+        """
         admin = False
         for role in message.author.roles:
             if role.name == "Admin":
@@ -465,7 +549,6 @@ class MyClient(discord.Client):
                 global song_queue
 
                 if len(song_queue) > howMany:
-                    title = await self.get_song(str(song_queue[howMany]).split(":")[0])
                     for i in range(howMany):
                         song_queue.pop(0)
                     voiceChannel.stop()
@@ -722,25 +805,29 @@ class MyClient(discord.Client):
                     id_to_remove = inverted_dict.get((" ").join(message.content.split(" ")[1:]).strip())
                     if id_to_remove in list_of_titles_by_id:
                         title = list_of_titles_by_id.get(id_to_remove)
-                        print("Removing '{}'".format(title))
-                        try:
-                            for file in os.listdir(path_to_songs):
-                                if str(file.split(".")[0]) == id_to_remove:
-                                    os.remove(path_to_songs + os.sep + file)
-                                    message_to_send = message_to_send + "Removed '{}' from songs\n".format(file)
-                                    print("Removed '{}' from songs".format(file))
-                            with open(path_to_archive_log, "r") as file:
-                                lines = file.readlines()
-                            lines.remove("youtube {}\n".format(id_to_remove))
-                            print("Removed 'youtube {}' from archive.log".format(id_to_remove))
-                            message_to_send = message_to_send + "Removed 'youtube {}' from archive.log\n".format(
-                                id_to_remove)
-                            with open(path_to_archive_log, "w") as file:
-                                file.writelines(lines)
-                            list_of_titles_by_id.pop(id_to_remove)
-                            message_to_send = message_to_send + "Removed '{}'".format(title)
-                            await message.channel.send(message_to_send)
-                        except PermissionError:
+                        if title != current_song:
+                            print("Removing '{}'".format(title))
+                            try:
+                                list_of_files = os.listdir(path_to_songs)
+                                for file in list_of_files:
+                                    if str(file.split(".")[0]) == id_to_remove:
+                                        os.remove(path_to_songs + os.sep + file)
+                                        message_to_send = message_to_send + "Removed '{}' from songs\n".format(file)
+                                        print("Removed '{}' from songs".format(file))
+                                with open(path_to_archive_log, "r") as file:
+                                    lines = file.readlines()
+                                lines.remove("youtube {}\n".format(id_to_remove))
+                                print("Removed 'youtube {}' from archive.log".format(id_to_remove))
+                                message_to_send = message_to_send + "Removed 'youtube {}' from archive.log\n".format(
+                                    id_to_remove)
+                                with open(path_to_archive_log, "w") as file:
+                                    file.writelines(lines)
+                                list_of_titles_by_id.pop(id_to_remove)
+                                message_to_send = message_to_send + "Removed '{}'".format(title)
+                                await message.channel.send(message_to_send)
+                            except PermissionError:
+                                await message.channel.send("Couldn't remove '{}' as it was currently playing".format(title))
+                        else:
                             await message.channel.send("Couldn't remove '{}' as it was currently playing".format(title))
                     else:
                         await message.channel.send("Couldn't find id '{}'".format(id_to_remove))
