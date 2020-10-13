@@ -27,14 +27,13 @@ listOfCommands = {";join": "Join the voice channel you're on",
                   ";load": "Loads a saved queue"
                   }
 
-embed_message_max_characters = 2048
 
 # Initiate global variables
+EMBED_MESSAGE_MAX_CHARACTERS = 2048
 song_queue = []
 playable = True
 binds = {}
 binds_by_link = {}
-idle_time = 0
 list_of_titles_by_id = {}
 current_song = ""
 MAX_SONG_QUEUE_LENGTH = 250

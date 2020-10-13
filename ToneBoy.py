@@ -16,7 +16,7 @@ token = os.getenv('DISCORD_TOKEN')
 
 def format_bytes(size):
     """
-    Gives correct ISO prefixes
+    Gives correct prefixes to sizes
     :param size: int, size in bytes
     :return: str, Returns size in appropriate format
     """
@@ -336,10 +336,10 @@ class MyClient(discord.Client):
                 await message.channel.send("The queue is empty")
             else:
                 this_message_to_send = "```Now: " + current_song + "\n```\n"
-                if len(this_message_to_send) > embed_message_max_characters:
-                    this_message_to_send = this_message_to_send[:embed_message_max_characters - 1]
+                if len(this_message_to_send) > EMBED_MESSAGE_MAX_CHARACTERS:
+                    this_message_to_send = this_message_to_send[:EMBED_MESSAGE_MAX_CHARACTERS - 1]
                 # Make sure this and previous ones don't exceed 2000 characters
-                if (len(this_message_to_send) + len(message_to_send)) >= embed_message_max_characters:
+                if (len(this_message_to_send) + len(message_to_send)) >= EMBED_MESSAGE_MAX_CHARACTERS:
                     # Add previous messages to list if true
                     list_of_lists.append(message_to_send)
                     # Empty previous messages
@@ -359,10 +359,10 @@ class MyClient(discord.Client):
                     # Craft message
                     this_message_to_send = ("```" + str(index) + ": " + title + "\n```")
                     # Make sure this message doesn't exceed 2000 characters
-                    if len(this_message_to_send) > embed_message_max_characters:
-                        this_message_to_send = this_message_to_send[:embed_message_max_characters - 1]
+                    if len(this_message_to_send) > EMBED_MESSAGE_MAX_CHARACTERS:
+                        this_message_to_send = this_message_to_send[:EMBED_MESSAGE_MAX_CHARACTERS - 1]
                     # Make sure this and previous ones don't exceed 2000 characters
-                    if (len(this_message_to_send) + len(message_to_send)) >= embed_message_max_characters:
+                    if (len(this_message_to_send) + len(message_to_send)) >= EMBED_MESSAGE_MAX_CHARACTERS:
                         # Add previous messages to list if true
                         list_of_lists.append(message_to_send)
                         # Empty previous messages
@@ -543,10 +543,10 @@ class MyClient(discord.Client):
                         thisMessageToSend = (", ".join(binds_by_link.get(item)) + " : " + item + "\n")
                         # thisMessageToSend = (item + " : " + binds.get(item).strip() + "\n")
                         # Make sure this message doesn't exceed 2000 characters
-                        if len(thisMessageToSend) > embed_message_max_characters:
-                            thisMessageToSend = thisMessageToSend[:embed_message_max_characters - 1]
+                        if len(thisMessageToSend) > EMBED_MESSAGE_MAX_CHARACTERS:
+                            thisMessageToSend = thisMessageToSend[:EMBED_MESSAGE_MAX_CHARACTERS - 1]
                         # Make sure this and previous ones don't exceed 2000 characters
-                        if (len(thisMessageToSend) + len(messageToSend)) >= embed_message_max_characters:
+                        if (len(thisMessageToSend) + len(messageToSend)) >= EMBED_MESSAGE_MAX_CHARACTERS:
                             # Add previous messages to list if true
                             listOfLists.append(messageToSend)
                             # Empty previous messages
@@ -663,10 +663,10 @@ class MyClient(discord.Client):
                 thisMessageToSend = "```{} : {}\n```".format(songs.get(song), song)
                 # thisMessageToSend = (str(songs.get(song)) + " : " + str(song) + "\n")
                 # Make sure this message doesn't exceed 2000 characters
-                if len(thisMessageToSend) > embed_message_max_characters:
-                    thisMessageToSend = thisMessageToSend[:embed_message_max_characters - 1]
+                if len(thisMessageToSend) > EMBED_MESSAGE_MAX_CHARACTERS:
+                    thisMessageToSend = thisMessageToSend[:EMBED_MESSAGE_MAX_CHARACTERS - 1]
                 # Make sure this and previous ones don't exceed 2000 characters
-                if (len(thisMessageToSend) + len(messageToSend)) >= embed_message_max_characters:
+                if (len(thisMessageToSend) + len(messageToSend)) >= EMBED_MESSAGE_MAX_CHARACTERS:
                     # Add previous messages to list if true
                     listOfLists.append(messageToSend)
                     # Empty previous messages
