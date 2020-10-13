@@ -760,9 +760,9 @@ class MyClient(discord.Client):
             messageToSend = ""
             # List of messages to send
             listOfLists = []
-            for id in list_of_titles_by_id.keys():
+            for index, id in enumerate(list_of_titles_by_id.keys()):
                 # thisMessageToSend = "{} : {}\n".format(id, list_of_titles_by_id.get(id))
-                thisMessageToSend = "```{}```".format(list_of_titles_by_id.get(id))
+                thisMessageToSend = f"```{index + 1} : {list_of_titles_by_id.get(id)}```"
                 # Make sure this message doesn't exceed 2000 characters
                 if len(thisMessageToSend) > 2000:
                     thisMessageToSend = thisMessageToSend[:2000 - 1]

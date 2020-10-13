@@ -10,7 +10,6 @@ Todo Toneboy:
 /Afk timeout
 /Put message in <> so that it doesn't embed
 /Edit binds command
-/List command to list all downloaded music with indexes to play them
 /Bind x y should send bind list
 /Less messages
 /Command to show the amount of songs played in total
