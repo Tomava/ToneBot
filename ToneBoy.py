@@ -188,7 +188,7 @@ class MyClient(discord.Client):
 
         voice_channel = get(self.voice_clients, guild=server)
         # If the player is already playing something, add the song to the queue
-        if voice_channel and voice_channel.is_playing():
+        if voice_channel and (voice_channel.is_playing() or voice_channel.is_paused()):
             # If already playing something add song to queue
             id = await self.check_id(message, url, id_from_link, print_this_command)
             if id is not None:

@@ -96,3 +96,6 @@
 -";remove" will now correctly error if the song is currently playing and not delete the info.json
 +";index x" plays a song with the index x from the list of downloaded songs
 -";list" now shows indexes
+
+15.10.2020:
+-If player is paused and new song is added, will no longer replace current song
