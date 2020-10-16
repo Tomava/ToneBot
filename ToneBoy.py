@@ -263,16 +263,6 @@ class MyClient(discord.Client):
             song_history = {
                 'songs': [{'id': id, 'title': title, 'value': 1, "last_played": str(datetime.now().timestamp())}],
                 'sum': 1}
-        with open(path_to_discord + os.sep + "history.json", "r", encoding='utf-8') as history_file:
-            lines = history_file.readlines()
-        with open(path_to_discord + os.sep + "history.json.old", "w", encoding='utf-8') as history_file:
-            history_file.close()
-        with open(path_to_discord + os.sep + "history.json.old", "r+", encoding='utf-8') as history_file:
-            if len(history_file.readlines()) > 1:
-                if json.loads(history_file)['sum'] == json.loads(lines)['sum'] - 1:
-                    history_file.writelines(lines)
-            else:
-                history_file.writelines(lines)
         with open(path_to_discord + os.sep + "history.json", "w", encoding='utf-8') as history_file:
             json.dump(song_history, history_file, indent=2, ensure_ascii=False)
 
