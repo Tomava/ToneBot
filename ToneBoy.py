@@ -8,6 +8,7 @@ import os
 import json
 from dotenv import load_dotenv
 import random
+from urllib.parse import urlsplit
 from config import *
 
 load_dotenv(path_to_discord + os.sep + "ToneBoyToken.env")
@@ -117,13 +118,14 @@ class MyClient(discord.Client):
     async def get_url(self, message, key_word):
         """
         Checks if given key word is a bound word or a title of already downloaded song. If neither is true checks if given
-        link contains "youtu" to check it's a valid youtube link
+        link contains is a valid youtube link with urllib
         :param message: MessageType, For sending error message
         :param key_word: str, Can be bind, link or a song title
         :return: str, Url of a song
         """
         global list_of_titles_by_id
         url = key_word
+        base_url = "{0.scheme}://{0.netloc}/".format(urlsplit(key_word))
         if key_word in binds.keys():
             url = binds.get(key_word)
         # Check if key_word is a title of already downloaded song
@@ -131,8 +133,7 @@ class MyClient(discord.Client):
             inverted_dict = {value: key for key, value in list_of_titles_by_id.items()}
             this_id = inverted_dict.get(key_word)
             url = "https://www.youtube.com/watch?v=" + this_id
-        elif key_word.count("youtu") == 0:
-            await message.channel.send("That's not a valid url")
+        elif base_url not in LIST_OF_ACCEPTED_URLS:
             return None
         return url
 
@@ -484,8 +485,8 @@ class MyClient(discord.Client):
         elif message_content.startswith(';help'):
             embed = discord.Embed(title="Help on BOT",
                                   description="You must be DJ to use these commands")
-            for command in listOfCommands:
-                embed.add_field(name="```{}```".format(command), value="```{}```".format(listOfCommands.get(command)))
+            for command in LIST_OF_COMMANDS:
+                embed.add_field(name="```{}```".format(command), value="```{}```".format(LIST_OF_COMMANDS.get(command)))
             await message.channel.send(content=None, embed=embed)
 
         # Give birthday
@@ -584,8 +585,9 @@ class MyClient(discord.Client):
                 return
 
             url = await self.get_url(message, (" ").join(message.content.split(" ")[1:]).strip())
-            if url is not None:
-                await self.play_song(message, url, True)
+            if url is None:
+                return await message.channel.send("That's not a valid url")
+            await self.play_song(message, url, True)
 
         elif message_content.startswith(";move"):
             if not await self.check_dj(message):
@@ -657,18 +659,10 @@ class MyClient(discord.Client):
                 return
             url = messageParts[2]
             shortened = messageParts[1]
-            if url.lower().count("youtu") == 0:
-                await message.channel.send("That's not a valid url")
-                return
-            if str(shortened).lower().count("youtu") > 0:
-                await message.channel.send("Bind can't contain the word 'youtu'")
-                return
-            elif str(shortened).lower() == "random" or str(shortened).lower() == "ultrarandom":
-                await message.channel.send("Bind can't be the word 'random' or 'ultrarandom'")
-                return
-            elif str(shortened).lower() == "r" or str(shortened).lower() == "ur":
-                await message.channel.send("Bind can't be the word 'r' or 'ur'")
-                return
+            if url != await self.get_url(message, url):
+                return await message.channel.send("That's not a valid url")
+            elif await self.get_url(message, str(shortened).lower()) is not None:
+                return await message.channel.send("Bind can't be a youtube link")
 
             removeFromLink = ["list=", "index=", "t="]
             if url.count("youtube.com") > 0:

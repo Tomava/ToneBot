@@ -99,3 +99,6 @@
 
 15.10.2020:
 -If player is paused and new song is added, will no longer replace current song
+
+16.10.2020:
+-Will now check that given urls are valid youtube urls with urllib
