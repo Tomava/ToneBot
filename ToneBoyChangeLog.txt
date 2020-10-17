@@ -102,3 +102,6 @@
 
 16.10.2020:
 -Will now check that given urls are valid youtube urls with urllib
+
+17.10.2020:
+-Will now print correct message if player is already playing

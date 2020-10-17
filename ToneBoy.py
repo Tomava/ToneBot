@@ -570,6 +570,8 @@ class MyClient(discord.Client):
                 if voiceChannel and voiceChannel.is_paused():
                     voiceChannel.resume()
                     await self.print_song_queue(message, True)
+                elif voiceChannel and voiceChannel.is_playing():
+                    await message.channel.send("Already playing")
                 else:
                     await message.channel.send("The queue is empty")
                 return
