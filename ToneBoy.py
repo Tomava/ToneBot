@@ -893,6 +893,8 @@ class MyClient(discord.Client):
             if url is not None:
                 await self.play_song(message, url, False)
                 await self.move_to_index(message, len(song_queue), 1)
+            else:
+                await message.channel.send("That's not a valid url")
 
         elif message_content.startswith(";index"):
             if not await self.check_dj(message):

@@ -105,3 +105,6 @@
 
 17.10.2020:
 -Will now print correct message if player is already playing
+
+24.10.2020:
+-Will now send error message on incorrect ";next" url
