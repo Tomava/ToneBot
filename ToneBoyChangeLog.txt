@@ -108,3 +108,6 @@
 
 24.10.2020:
 -Will now send error message on incorrect ";next" url
+
+9.11.2020:
+-Fixed syntax on excepting errors

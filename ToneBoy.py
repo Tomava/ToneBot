@@ -337,7 +337,7 @@ class MyClient(discord.Client):
             with open(path_to_songs + os.sep + id + '.info.json') as metaFile:
                 file = json.load(metaFile)
                 title = file['title']
-        except FileNotFoundError or PermissionError:
+        except (FileNotFoundError, PermissionError):
             title = "Title not found"
         return title
 
