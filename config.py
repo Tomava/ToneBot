@@ -80,7 +80,7 @@ with open(path_to_archive_log, "r") as file:
                 with open(path_to_songs + os.sep + song_id + '.info.json') as metaFile:
                     file = json.load(metaFile)
                     title = file['title']
-            except FileNotFoundError or PermissionError:
+            except (FileNotFoundError, PermissionError):
                 title = "Title not found"
             list_of_titles_by_id.setdefault(song_id, title)
 # Read binds from a file
