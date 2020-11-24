@@ -31,6 +31,42 @@ def format_bytes(size):
     return size, power_labels[n] + 'bytes'
 
 
+class Song():
+
+    def __init__(self, song_id, song_title, length):
+        """
+        Constructor
+        :param length: int, Song length in seconds
+        :param song_title: str, Song title
+        :param song_id: str, Song id
+        """
+        self.__length = length
+        self.__title = song_title
+        self.__song_id = song_id
+
+    def get_length(self):
+        """
+        Returns the length in HH:MM:SS or HH:SS or H:SS
+        :return: str
+        """
+        hours = int(self.__length / 60 / 60)
+        minutes = int((self.__length - hours * 60 * 60) / 60)
+        seconds = int(self.__length - hours * 60 * 60 - minutes * 60)
+        if hours > 0:
+            return f"{hours}:{minutes:02d}:{seconds:02d}"
+        else:
+            return f"{minutes}:{seconds:02d}"
+
+    def get_title(self):
+        """
+        Returns song's title
+        :return: str, Title
+        """
+        return self.__title
+
+
+
+
 class MyClient(discord.Client):
 
     async def on_ready(self):
@@ -110,7 +146,8 @@ class MyClient(discord.Client):
             song_id = str(await self.download_song(url, message)).strip()
             if song_id == "None":
                 return None
-            list_of_titles_by_id.setdefault(song_id.strip(), await self.get_song_title(song_id.strip()))
+            title = (await self.get_song_info(song_id.strip())).get_title()
+            list_of_titles_by_id.setdefault(song_id.strip(), title)
         elif id_from_link != "":
             song_id = str(id_from_link).strip()
         return song_id
@@ -223,9 +260,9 @@ class MyClient(discord.Client):
         if id in list_of_titles_by_id.keys():
             title = list_of_titles_by_id.get(id)
         else:
-            title = await self.get_song_title(id)
+            title = (await self.get_song_info(id)).get_title()
         global current_song
-        current_song = title
+        current_song = id
         print(title)
         loop = asyncio.get_event_loop()
         # Play the song that just got downloaded
@@ -326,20 +363,22 @@ class MyClient(discord.Client):
                 await self.play_song(message, url, False)
             i += 1
 
-    async def get_song_title(self, id):
+    async def get_song_info(self, song_id):
         """
-        Gets the title of a given song by id from it's info.json file
-        :param id: str, Given song id
-        :return: str, Title of the song
+        Gets the title and length of a given song by id from it's info.json file
+        :param song_id str, Given song id
+        :return: Song, Song object
         """
         try:
             # Get title
-            with open(path_to_songs + os.sep + id + '.info.json') as metaFile:
+            with open(path_to_songs + os.sep + song_id + '.info.json') as metaFile:
                 file = json.load(metaFile)
                 title = file['title']
+                length = file['duration']
         except (FileNotFoundError, PermissionError):
             title = "Title not found"
-        return title
+            length = 0
+        return Song(song_id, title, length)
 
     async def add_to_queue(self, channel, id, message, print_this_command):
         """
@@ -390,7 +429,8 @@ class MyClient(discord.Client):
             if len(song_queue) < 1 and current_song == "":
                 await message.channel.send("The queue is empty")
             else:
-                this_message_to_send = "```Now: " + current_song + "\n```\n"
+                this_song = (await self.get_song_info(current_song))
+                this_message_to_send = "```Now: " + this_song.get_title() + this_song.get_length() + "\n```\n"
                 if len(this_message_to_send) > EMBED_MESSAGE_MAX_CHARACTERS:
                     this_message_to_send = this_message_to_send[:EMBED_MESSAGE_MAX_CHARACTERS - 1]
                 # Make sure this and previous ones don't exceed 2000 characters
@@ -401,13 +441,15 @@ class MyClient(discord.Client):
                     message_to_send = ""
                 # Add current message to previous messages
                 message_to_send = str(message_to_send) + this_message_to_send
+                # Find the longest index to format queue properly
+                longest = len(str(len(song_queue)))
                 for song in song_queue:
                     # Get song id
-                    song = str(song).split(":")[0]
+                    song_id = str(song).split(":")[0]
                     # Get song title
-                    title = await self.get_song_title(song)
+                    song = await self.get_song_info(song_id)
                     # Craft message
-                    this_message_to_send = ("```" + str(index) + ": " + title + "\n```")
+                    this_message_to_send = f"```{index:<{longest}}: {song.get_title()} ({song.get_length()})\n```"
                     # Make sure this message doesn't exceed 2000 characters
                     if len(this_message_to_send) > EMBED_MESSAGE_MAX_CHARACTERS:
                         this_message_to_send = this_message_to_send[:EMBED_MESSAGE_MAX_CHARACTERS - 1]
@@ -705,33 +747,28 @@ class MyClient(discord.Client):
         elif message_content.startswith(";stats"):
             if not await self.check_dj(message):
                 return
-            global song_history
-            songs = {}
-            for song in song_history['songs']:
-                songs[song['title']] = song['value']
-            i = 0
             messageToSend = ""
             # List of messages to send
             listOfLists = []
-            for song in sorted(songs, key=songs.get, reverse=True):
-                if songs.get(song) < 2:
-                    break
-                if i >= 15:
-                    break
-                i += 1
-                thisMessageToSend = "```{} : {}\n```".format(songs.get(song), song)
-                # thisMessageToSend = (str(songs.get(song)) + " : " + str(song) + "\n")
-                # Make sure this message doesn't exceed 2000 characters
-                if len(thisMessageToSend) > EMBED_MESSAGE_MAX_CHARACTERS:
-                    thisMessageToSend = thisMessageToSend[:EMBED_MESSAGE_MAX_CHARACTERS - 1]
-                # Make sure this and previous ones don't exceed 2000 characters
-                if (len(thisMessageToSend) + len(messageToSend)) >= EMBED_MESSAGE_MAX_CHARACTERS:
-                    # Add previous messages to list if true
-                    listOfLists.append(messageToSend)
-                    # Empty previous messages
-                    messageToSend = ""
-                # Add current message to previous messages
-                messageToSend = str(messageToSend) + thisMessageToSend
+            if len(song_history) > 0:
+                longest = str(max(int(d['value']) for d in song_history['songs']))
+                for i, song in enumerate(sorted(song_history['songs'], key=lambda x: x['value'], reverse=True)):
+                    if i >= 15:
+                        break
+                    length = (await self.get_song_info(song['id'])).get_length()
+                    thisMessageToSend = f"```{song['value']:<{len(longest)}} : {song['title']} ({length})\n```"
+                    # thisMessageToSend = (str(songs.get(song)) + " : " + str(song) + "\n")
+                    # Make sure this message doesn't exceed 2000 characters
+                    if len(thisMessageToSend) > EMBED_MESSAGE_MAX_CHARACTERS:
+                        thisMessageToSend = thisMessageToSend[:EMBED_MESSAGE_MAX_CHARACTERS - 1]
+                    # Make sure this and previous ones don't exceed 2000 characters
+                    if (len(thisMessageToSend) + len(messageToSend)) >= EMBED_MESSAGE_MAX_CHARACTERS:
+                        # Add previous messages to list if true
+                        listOfLists.append(messageToSend)
+                        # Empty previous messages
+                        messageToSend = ""
+                    # Add current message to previous messages
+                    messageToSend = str(messageToSend) + thisMessageToSend
             # Add last messages to list
             listOfLists.append(messageToSend)
             # Go through list and send as many messages as there are items on this list
@@ -746,9 +783,10 @@ class MyClient(discord.Client):
             messageToSend = ""
             # List of messages to send
             listOfLists = []
-            for index, id in enumerate(list_of_titles_by_id.keys()):
-                # thisMessageToSend = "{} : {}\n".format(id, list_of_titles_by_id.get(id))
-                thisMessageToSend = f"```{index + 1} : {list_of_titles_by_id.get(id)}```"
+            for index, song_id in enumerate(list_of_titles_by_id.keys()):
+                # length = (await self.get_song_info(song_id)).get_length()
+                song = await self.get_song_info(song_id)
+                thisMessageToSend = f"```{index}: {song.get_title()} ({song.get_length()})\n```"
                 # Make sure this message doesn't exceed 2000 characters
                 if len(thisMessageToSend) > 2000:
                     thisMessageToSend = thisMessageToSend[:2000 - 1]
@@ -781,7 +819,7 @@ class MyClient(discord.Client):
                     id_to_remove = inverted_dict.get((" ").join(message.content.split(" ")[1:]).strip())
                     if id_to_remove in list_of_titles_by_id:
                         title = list_of_titles_by_id.get(id_to_remove)
-                        if title != current_song:
+                        if id_to_remove != current_song:
                             print("Removing '{}'".format(title))
                             try:
                                 list_of_files = os.listdir(path_to_songs)
@@ -850,7 +888,7 @@ class MyClient(discord.Client):
             if not await self.check_dj(message):
                 return
             with open(path_to_queues + os.sep + "saved_queue.txt", "w") as file:
-                url = await self.get_url(message, current_song)
+                url = await self.get_url(message, list_of_titles_by_id.get(current_song))
                 file.write(url + "\n")
                 for song in song_queue:
                     url = "https://www.youtube.com/watch?v={}".format(str(song).split(":")[0])

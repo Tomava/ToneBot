@@ -111,3 +111,7 @@
 
 9.11.2020:
 -Fixed syntax on excepting errors
+
+24.11.2020:
++Added song lengths to queue, stats and list
+-Improved some formatting

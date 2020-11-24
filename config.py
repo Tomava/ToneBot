@@ -63,9 +63,8 @@ if not os.path.exists(path_to_discord + os.sep + "history.json"):
         file.close()
 with open(path_to_discord + os.sep + "history.json", "r", encoding='utf-8') as file:
     data = file.read()
-global song_history
 if data == "":
-    song_history = ""
+    song_history = {}
 else:
     song_history = json.loads(data)
 if not os.path.exists(path_to_archive_log):
