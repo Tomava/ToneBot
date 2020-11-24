@@ -527,11 +527,11 @@ class MyClient(discord.Client):
                 return
             born = datetime.fromisoformat("2020-04-17T10:55:00")
             today = datetime.now()
-            currentAge = relativedelta(today, born)
-            years = str(currentAge.years)
-            months = str(currentAge.months)
-            days = str(currentAge.days)
-            hours = str(currentAge.hours)
+            current_age = relativedelta(today, born)
+            years = str(current_age.years)
+            months = str(current_age.months)
+            days = str(current_age.days)
+            hours = str(current_age.hours)
             await message.channel.send("I was created on 17.04.2020 at 10:55 (GMT+3)\n"
                                        "That makes me " + years + " years, " + months + " months, " + days + " days and " + hours + " hours old\n")
 
@@ -549,9 +549,9 @@ class MyClient(discord.Client):
             if not await self.check_dj(message):
                 return
             server = message.guild
-            voiceChannel = get(self.voice_clients, guild=server)
-            if voiceChannel and voiceChannel.is_playing():
-                voiceChannel.pause()
+            voice_channel = get(self.voice_clients, guild=server)
+            if voice_channel and voice_channel.is_playing():
+                voice_channel.pause()
                 await message.channel.send("Music paused")
             else:
                 await message.channel.send("I'm not playing music")
@@ -560,11 +560,11 @@ class MyClient(discord.Client):
             if not await self.check_dj(message):
                 return
             server = message.guild
-            voiceChannel = get(self.voice_clients, guild=server)
-            splitMessage = message_content.split(" ")
-            if voiceChannel:
+            voice_channel = get(self.voice_clients, guild=server)
+            split_message = message_content.split(" ")
+            if voice_channel:
                 try:
-                    howMany = int(splitMessage[1]) - 1
+                    howMany = int(split_message[1]) - 1
                 except:
                     howMany = 0
                 if howMany < 0:
@@ -574,14 +574,14 @@ class MyClient(discord.Client):
                 if len(song_queue) > howMany:
                     for i in range(howMany):
                         song_queue.pop(0)
-                    voiceChannel.stop()
+                    voice_channel.stop()
                     # Wait so the queue gets time to refresh
                     await asyncio.sleep(0.8)
                 else:
                     await self.clear_queue(message)
                     global current_song
                     current_song = ""
-                    voiceChannel.stop()
+                    voice_channel.stop()
             else:
                 await message.channel.send("I'm not playing music")
 
@@ -606,13 +606,13 @@ class MyClient(discord.Client):
             if not await self.check_dj(message):
                 return
             server = message.guild
-            voiceChannel = get(self.voice_clients, guild=server)
+            voice_channel = get(self.voice_clients, guild=server)
             if len(message.content.split(" ")) <= 1:
                 # Check if music is already being played but on pause
-                if voiceChannel and voiceChannel.is_paused():
-                    voiceChannel.resume()
+                if voice_channel and voice_channel.is_paused():
+                    voice_channel.resume()
                     await self.print_song_queue(message, True)
-                elif voiceChannel and voiceChannel.is_playing():
+                elif voice_channel and voice_channel.is_playing():
                     await message.channel.send("Already playing")
                 else:
                     await message.channel.send("The queue is empty")
@@ -640,86 +640,86 @@ class MyClient(discord.Client):
         elif message_content.startswith(';bind'):
             if not await self.check_dj(message):
                 return
-            messageParts = message.content.split(" ")
-            if len(messageParts) == 2:
-                if str(messageParts[1]).lower().startswith("list"):
-                    listOfLists = []
+            message_parts = message.content.split(" ")
+            if len(message_parts) == 2:
+                if str(message_parts[1]).lower().startswith("list"):
+                    list_of_lists = []
                     index = 1
-                    messageToSend = ""
+                    message_to_send = ""
                     for item in sorted(binds_by_link, key=binds_by_link.get):
                         # for bind in bindsByLink.get(item):
                         #     thisBind = thisBind + bind
-                        thisMessageToSend = (", ".join(binds_by_link.get(item)) + " : " + item + "\n")
-                        # thisMessageToSend = (item + " : " + binds.get(item).strip() + "\n")
+                        this_message_to_send = (", ".join(binds_by_link.get(item)) + " : " + item + "\n")
+                        # this_message_to_send = (item + " : " + binds.get(item).strip() + "\n")
                         # Make sure this message doesn't exceed 2000 characters
-                        if len(thisMessageToSend) > EMBED_MESSAGE_MAX_CHARACTERS:
-                            thisMessageToSend = thisMessageToSend[:EMBED_MESSAGE_MAX_CHARACTERS - 1]
+                        if len(this_message_to_send) > EMBED_MESSAGE_MAX_CHARACTERS:
+                            this_message_to_send = this_message_to_send[:EMBED_MESSAGE_MAX_CHARACTERS - 1]
                         # Make sure this and previous ones don't exceed 2000 characters
-                        if (len(thisMessageToSend) + len(messageToSend)) >= EMBED_MESSAGE_MAX_CHARACTERS:
+                        if (len(this_message_to_send) + len(message_to_send)) >= EMBED_MESSAGE_MAX_CHARACTERS:
                             # Add previous messages to list if true
-                            listOfLists.append(messageToSend)
+                            list_of_lists.append(message_to_send)
                             # Empty previous messages
-                            messageToSend = ""
+                            message_to_send = ""
                         # Add current message to previous messages
-                        messageToSend = str(messageToSend) + thisMessageToSend
+                        message_to_send = str(message_to_send) + this_message_to_send
                         index += 1
                     # Add last messages to list
-                    listOfLists.append(messageToSend)
+                    list_of_lists.append(message_to_send)
                     # Go through list and send as many messages as there are items on this list
-                    for tempList in listOfLists:
+                    for temp_list in list_of_lists:
                         embed = discord.Embed(title=("Binds"),
-                                              description=(tempList))
+                                              description=(temp_list))
                         await message.channel.send(content="<@" + str(message.author.id) + ">", embed=embed)
                     return
-            if len(messageParts) != 3:
+            if len(message_parts) != 3:
                 await message.channel.send("Your message wasn't formatted correctly")
                 return
-            if str(messageParts[1]).lower().startswith("remove") or str(messageParts[1]).lower().startswith("delete"):
-                toBeRemoved = messageParts[2]
-                if toBeRemoved in binds:
-                    url = binds.get(toBeRemoved)
-                    del binds[toBeRemoved]
+            if str(message_parts[1]).lower().startswith("remove") or str(message_parts[1]).lower().startswith("delete"):
+                to_be_removed = message_parts[2]
+                if to_be_removed in binds:
+                    url = binds.get(to_be_removed)
+                    del binds[to_be_removed]
                     # Removes this alias from dictionary
-                    binds_by_link[url].remove(toBeRemoved)
+                    binds_by_link[url].remove(to_be_removed)
                     # If there are no other aliases for that link, remove the link
                     if len(binds_by_link[url]) == 0:
                         del binds_by_link[url]
                     with open(path_to_binds, "w") as file:
                         for line in binds:
                             file.write(line + " " + binds.get(line) + "\n")
-                    await message.channel.send("Removed {} from {}".format(toBeRemoved, url))
+                    await message.channel.send("Removed {} from {}".format(to_be_removed, url))
                 else:
-                    await message.channel.send("Couldn't find a bind called '" + toBeRemoved + "'")
+                    await message.channel.send("Couldn't find a bind called '" + to_be_removed + "'")
                 return
-            url = messageParts[2]
-            shortened = messageParts[1]
+            url = message_parts[2]
+            shortened = message_parts[1]
             if url != await self.get_url(message, url):
                 return await message.channel.send("That's not a valid url")
             elif await self.get_url(message, str(shortened).lower()) is not None:
                 return await message.channel.send("Bind can't be a youtube link")
 
-            removeFromLink = ["list=", "index=", "t="]
+            remove_from_link = ["list=", "index=", "t="]
             if url.count("youtube.com") > 0:
                 split_character = "&"
             else:
                 split_character = "?"
             parts = url.split(split_character)
             # Create a second list where we remove stuff from
-            tempParts = parts.copy()
+            temp_parts = parts.copy()
             for part in parts:
-                for removablePart in removeFromLink:
-                    if str(part).startswith(removablePart):
-                        tempParts.remove(part)
-            newLink = ""
+                for removable_part in remove_from_link:
+                    if str(part).startswith(removable_part):
+                        temp_parts.remove(part)
+            new_link = ""
             i = 0
             # Creating the new link
-            for part in tempParts:
+            for part in temp_parts:
                 if i > 0:
-                    newLink = newLink + split_character + part
+                    new_link = new_link + split_character + part
                 else:
-                    newLink = part
+                    new_link = part
                 i += 1
-            url = newLink
+            url = new_link
 
             with open(path_to_binds, "r") as file:
                 for line in file.readlines():
@@ -747,64 +747,64 @@ class MyClient(discord.Client):
         elif message_content.startswith(";stats"):
             if not await self.check_dj(message):
                 return
-            messageToSend = ""
+            message_to_send = ""
             # List of messages to send
-            listOfLists = []
+            list_of_lists = []
             if len(song_history) > 0:
                 longest = str(max(int(d['value']) for d in song_history['songs']))
                 for i, song in enumerate(sorted(song_history['songs'], key=lambda x: x['value'], reverse=True)):
                     if i >= 15:
                         break
                     length = (await self.get_song_info(song['id'])).get_length()
-                    thisMessageToSend = f"```{song['value']:<{len(longest)}} : {song['title']} ({length})\n```"
-                    # thisMessageToSend = (str(songs.get(song)) + " : " + str(song) + "\n")
+                    this_message_to_send = f"```{song['value']:<{len(longest)}} : {song['title']} ({length})\n```"
+                    # this_message_to_send = (str(songs.get(song)) + " : " + str(song) + "\n")
                     # Make sure this message doesn't exceed 2000 characters
-                    if len(thisMessageToSend) > EMBED_MESSAGE_MAX_CHARACTERS:
-                        thisMessageToSend = thisMessageToSend[:EMBED_MESSAGE_MAX_CHARACTERS - 1]
+                    if len(this_message_to_send) > EMBED_MESSAGE_MAX_CHARACTERS:
+                        this_message_to_send = this_message_to_send[:EMBED_MESSAGE_MAX_CHARACTERS - 1]
                     # Make sure this and previous ones don't exceed 2000 characters
-                    if (len(thisMessageToSend) + len(messageToSend)) >= EMBED_MESSAGE_MAX_CHARACTERS:
+                    if (len(this_message_to_send) + len(message_to_send)) >= EMBED_MESSAGE_MAX_CHARACTERS:
                         # Add previous messages to list if true
-                        listOfLists.append(messageToSend)
+                        list_of_lists.append(message_to_send)
                         # Empty previous messages
-                        messageToSend = ""
+                        message_to_send = ""
                     # Add current message to previous messages
-                    messageToSend = str(messageToSend) + thisMessageToSend
+                    message_to_send = str(message_to_send) + this_message_to_send
             # Add last messages to list
-            listOfLists.append(messageToSend)
+            list_of_lists.append(message_to_send)
             # Go through list and send as many messages as there are items on this list
-            for tempList in listOfLists:
+            for temp_list in list_of_lists:
                 embed = discord.Embed(title=("Top 15 songs"),
-                                      description=(tempList))
+                                      description=(temp_list))
                 await message.channel.send(content="<@" + str(message.author.id) + ">", embed=embed)
 
         elif message_content.startswith(";list"):
             if not await self.check_dj(message):
                 return
-            messageToSend = ""
+            message_to_send = ""
             # List of messages to send
-            listOfLists = []
+            list_of_lists = []
             for index, song_id in enumerate(list_of_titles_by_id.keys()):
                 # length = (await self.get_song_info(song_id)).get_length()
                 song = await self.get_song_info(song_id)
-                thisMessageToSend = f"```{index}: {song.get_title()} ({song.get_length()})\n```"
+                this_message_to_send = f"```{index + 1}: {song.get_title()} ({song.get_length()})\n```"
                 # Make sure this message doesn't exceed 2000 characters
-                if len(thisMessageToSend) > 2000:
-                    thisMessageToSend = thisMessageToSend[:2000 - 1]
+                if len(this_message_to_send) > 2000:
+                    this_message_to_send = this_message_to_send[:2000 - 1]
                 # Make sure this and previous ones don't exceed 2000 characters
-                if (len(thisMessageToSend) + len(messageToSend)) >= 2000:
+                if (len(this_message_to_send) + len(message_to_send)) >= 2000:
                     # Add previous messages to list if true
-                    listOfLists.append(messageToSend)
+                    list_of_lists.append(message_to_send)
                     # Empty previous messages
-                    messageToSend = ""
+                    message_to_send = ""
                 # Add current message to previous messages
-                messageToSend = str(messageToSend) + thisMessageToSend
+                message_to_send = str(message_to_send) + this_message_to_send
                 # Add last messages to list
-            listOfLists.append(messageToSend)
+            list_of_lists.append(message_to_send)
             # Go through list and send as many messages as there are items on this list
             i = 1
-            for tempList in listOfLists:
-                embed = discord.Embed(title=("List of downloaded songs {}/{}".format(i, len(listOfLists))),
-                                      description=(tempList))
+            for temp_list in list_of_lists:
+                embed = discord.Embed(title=("List of downloaded songs {}/{}".format(i, len(list_of_lists))),
+                                      description=(temp_list))
                 await message.channel.send(content="<@" + str(message.author.id) + ">", embed=embed)
                 i += 1
 
@@ -812,7 +812,7 @@ class MyClient(discord.Client):
             if not await self.check_admin(message):
                 return
             if len(message.content.split(" ")) >= 2:
-                title = (" ").join(message.content.split(" ")[1:]).strip()
+                title = " ".join(message.content.split(" ")[1:]).strip()
                 message_to_send = ""
                 if title in list_of_titles_by_id.values():
                     inverted_dict = {value: key for key, value in list_of_titles_by_id.items()}
@@ -916,11 +916,11 @@ class MyClient(discord.Client):
             if not await self.check_dj(message):
                 return
             server = message.guild
-            voiceChannel = get(self.voice_clients, guild=server)
+            voice_channel = get(self.voice_clients, guild=server)
             if len(message.content.split(" ")) <= 1:
                 # Check if music is already being played but on pause
-                if voiceChannel and voiceChannel.is_paused():
-                    voiceChannel.resume()
+                if voice_channel and voice_channel.is_paused():
+                    voice_channel.resume()
                     await self.print_song_queue(message, True)
                 else:
                     await message.channel.send("The queue is empty")
