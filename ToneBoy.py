@@ -430,7 +430,7 @@ class MyClient(discord.Client):
                 await message.channel.send("The queue is empty")
             else:
                 this_song = (await self.get_song_info(current_song))
-                this_message_to_send = "```Now: " + this_song.get_title() + this_song.get_length() + "\n```\n"
+                this_message_to_send = f"```Now: {this_song.get_title()} ({this_song.get_length()})\n```\n"
                 if len(this_message_to_send) > EMBED_MESSAGE_MAX_CHARACTERS:
                     this_message_to_send = this_message_to_send[:EMBED_MESSAGE_MAX_CHARACTERS - 1]
                 # Make sure this and previous ones don't exceed 2000 characters
