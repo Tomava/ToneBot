@@ -31,7 +31,7 @@ def format_bytes(size):
     return size, power_labels[n] + 'bytes'
 
 
-class Song():
+class Song:
 
     def __init__(self, song_id, song_title, length):
         """
@@ -63,8 +63,6 @@ class Song():
         :return: str, Title
         """
         return self.__title
-
-
 
 
 class MyClient(discord.Client):
