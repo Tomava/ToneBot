@@ -43,47 +43,47 @@ current_song = ""
 
 # Paths to different directories
 # Will work on all platforms
-home = str(Path.home())
-path_to_discord = home + os.sep + "Discord"
-path_to_binds = path_to_discord + os.sep + "listOfBinds"
-path_to_queues = path_to_discord + os.sep + "queues"
-path_to_archive_log = path_to_discord + os.sep + "archive.log"
-path_to_songs = path_to_discord + os.sep + "songs"
+HOME = str(Path.home())
+PATH_TO_DISCORD = HOME + os.sep + "Discord"
+PATH_TO_BINDS = PATH_TO_DISCORD + os.sep + "listOfBinds"
+PATH_TO_QUEUES = PATH_TO_DISCORD + os.sep + "queues"
+PATH_TO_ARCHIVE_LOG = PATH_TO_DISCORD + os.sep + "archive.log"
+PATH_TO_SONGS = PATH_TO_DISCORD + os.sep + "songs"
 
 # Create the directories and files if they don't exist
-if not os.path.exists(path_to_songs):
-    os.makedirs(path_to_songs)
-if not os.path.exists(path_to_queues):
-    os.makedirs(path_to_queues)
-if not os.path.exists(path_to_binds):
-    with open(path_to_binds, "w") as file:
+if not os.path.exists(PATH_TO_SONGS):
+    os.makedirs(PATH_TO_SONGS)
+if not os.path.exists(PATH_TO_QUEUES):
+    os.makedirs(PATH_TO_QUEUES)
+if not os.path.exists(PATH_TO_BINDS):
+    with open(PATH_TO_BINDS, "w") as file:
         file.close()
-if not os.path.exists(path_to_discord + os.sep + "history.json"):
-    with open(path_to_discord + os.sep + "history.json", "w") as file:
+if not os.path.exists(PATH_TO_DISCORD + os.sep + "history.json"):
+    with open(PATH_TO_DISCORD + os.sep + "history.json", "w") as file:
         file.close()
-with open(path_to_discord + os.sep + "history.json", "r", encoding='utf-8') as file:
+with open(PATH_TO_DISCORD + os.sep + "history.json", "r", encoding='utf-8') as file:
     data = file.read()
 if data == "":
     song_history = {}
 else:
     song_history = json.loads(data)
-if not os.path.exists(path_to_archive_log):
-    with open(path_to_archive_log, "w") as file:
+if not os.path.exists(PATH_TO_ARCHIVE_LOG):
+    with open(PATH_TO_ARCHIVE_LOG, "w") as file:
         file.close()
 # Get song titles and ids from their info-files
-with open(path_to_archive_log, "r") as file:
+with open(PATH_TO_ARCHIVE_LOG, "r") as file:
     for line in file.readlines():
         if line.count("youtube") > 0:
             song_id = str(line).split(" ")[1].strip()
             try:
-                with open(path_to_songs + os.sep + song_id + '.info.json') as metaFile:
+                with open(PATH_TO_SONGS + os.sep + song_id + '.info.json') as metaFile:
                     file = json.load(metaFile)
                     title = file['title']
             except (FileNotFoundError, PermissionError):
                 title = "Title not found"
             list_of_titles_by_id.setdefault(song_id, title)
 # Read binds from a file
-with open(path_to_binds, "r") as file:
+with open(PATH_TO_BINDS, "r") as file:
     for line in file.readlines():
         line = line.split(" ")
         binds[line[0]] = line[1].strip()

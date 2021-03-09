@@ -11,7 +11,7 @@ import random
 from urllib.parse import urlsplit
 from config import *
 
-load_dotenv(path_to_discord + os.sep + "ToneBoyToken.env")
+load_dotenv(PATH_TO_DISCORD + os.sep + "ToneBoyToken.env")
 token = os.getenv('DISCORD_TOKEN')
 
 
@@ -132,7 +132,7 @@ class MyClient(discord.Client):
         song_id = None
         if id_from_link not in list_of_titles_by_id:
             # Not playable, if this command is currently removing songs from directory
-            rootDirectory = Path(path_to_songs)
+            rootDirectory = Path(PATH_TO_SONGS)
             # Sum of file sizes in directory
             size = sum(f.stat().st_size for f in rootDirectory.glob('**/*') if f.is_file())
             i = 0
@@ -181,9 +181,9 @@ class MyClient(discord.Client):
         """
         # Youtube-dl arguments
         ydl_opts = {
-            'outtmpl': path_to_songs + os.sep + '%(id)s.%(ext)s',
+            'outtmpl': PATH_TO_SONGS + os.sep + '%(id)s.%(ext)s',
             'format': 'bestaudio/best',
-            'download_archive': path_to_archive_log,
+            'download_archive': PATH_TO_ARCHIVE_LOG,
             'writeinfojson': 'True',
             'noplaylist': 'True',
             'postprocessors': [{
@@ -264,9 +264,9 @@ class MyClient(discord.Client):
         print(title)
         loop = asyncio.get_event_loop()
         # Play the song that just got downloaded
-        for file in os.listdir(path_to_songs):
+        for file in os.listdir(PATH_TO_SONGS):
             if file.count(id) > 0 and file.count("json") == 0:
-                voice_channel.play(discord.FFmpegPCMAudio(path_to_songs + os.sep + file),
+                voice_channel.play(discord.FFmpegPCMAudio(PATH_TO_SONGS + os.sep + file),
                                    after=lambda e: loop.create_task(self.check_queue(voice_channel, message)))
                 voice_channel.source = discord.PCMVolumeTransformer(voice_channel.source)
                 voice_channel.source.volume = 0.25
@@ -282,23 +282,26 @@ class MyClient(discord.Client):
         """
         global song_history
         id_found = False
+        time_now = datetime.isoformat(datetime.now())
         if song_history != "":
             for song in song_history['songs']:
                 jsonId = song['id']
                 if jsonId == id:
                     id_found = True
                     song['value'] = int(song['value']) + 1
-                    song['last_played'] = str(datetime.now().timestamp())
+                    song['last_played'] = str(time_now)
                     song_history['sum'] = song_history['sum'] + 1
             if not id_found:
                 song_history['songs'].append(
-                    {'id': id, 'title': title, 'value': 1, "last_played": str(datetime.now().timestamp())})
+                    {'id': id, 'title': title, 'value': 1, "last_played": str(time_now),
+                     "first_played": str(time_now)})
                 song_history['sum'] = song_history['sum'] + 1
         else:
             song_history = {
-                'songs': [{'id': id, 'title': title, 'value': 1, "last_played": str(datetime.now().timestamp())}],
+                'songs': [{'id': id, 'title': title, 'value': 1, "last_played": str(time_now),
+                     "first_played": str(time_now)}],
                 'sum': 1}
-        with open(path_to_discord + os.sep + "history.json", "w", encoding='utf-8') as history_file:
+        with open(PATH_TO_DISCORD + os.sep + "history.json", "w", encoding='utf-8') as history_file:
             json.dump(song_history, history_file, indent=2, ensure_ascii=False)
 
     async def check_queue(self, voice_channel, message):
@@ -369,7 +372,7 @@ class MyClient(discord.Client):
         """
         try:
             # Get title
-            with open(path_to_songs + os.sep + song_id + '.info.json') as metaFile:
+            with open(PATH_TO_SONGS + os.sep + song_id + '.info.json') as metaFile:
                 file = json.load(metaFile)
                 title = file['title']
                 length = file['duration']
@@ -682,7 +685,7 @@ class MyClient(discord.Client):
                     # If there are no other aliases for that link, remove the link
                     if len(binds_by_link[url]) == 0:
                         del binds_by_link[url]
-                    with open(path_to_binds, "w") as file:
+                    with open(PATH_TO_BINDS, "w") as file:
                         for line in binds:
                             file.write(line + " " + binds.get(line) + "\n")
                     await message.channel.send("Removed {} from {}".format(to_be_removed, url))
@@ -719,12 +722,12 @@ class MyClient(discord.Client):
                 i += 1
             url = new_link
 
-            with open(path_to_binds, "r") as file:
+            with open(PATH_TO_BINDS, "r") as file:
                 for line in file.readlines():
                     if str(line.split(" ")[0]).lower() == str(shortened).lower():
                         await message.channel.send("That bind is already in use for " + line.split(" ")[1])
                         return
-            with open(path_to_binds, "a") as file:
+            with open(PATH_TO_BINDS, "a") as file:
                 line = shortened + " " + url + "\n"
                 file.write(line)
                 binds[shortened] = url
@@ -735,7 +738,7 @@ class MyClient(discord.Client):
         elif message_content.startswith(";size"):
             if not await self.check_dj(message):
                 return
-            rootDirectory = Path(path_to_songs)
+            rootDirectory = Path(PATH_TO_SONGS)
             # Sum of file sizes in directory
             size = sum(f.stat().st_size for f in rootDirectory.glob('**/*') if f.is_file())
             formatted_size = format_bytes(size)
@@ -820,19 +823,19 @@ class MyClient(discord.Client):
                         if id_to_remove != current_song:
                             print("Removing '{}'".format(title))
                             try:
-                                list_of_files = os.listdir(path_to_songs)
+                                list_of_files = os.listdir(PATH_TO_SONGS)
                                 for file in list_of_files:
                                     if str(file.split(".")[0]) == id_to_remove:
-                                        os.remove(path_to_songs + os.sep + file)
+                                        os.remove(PATH_TO_SONGS + os.sep + file)
                                         message_to_send = message_to_send + "Removed '{}' from songs\n".format(file)
                                         print("Removed '{}' from songs".format(file))
-                                with open(path_to_archive_log, "r") as file:
+                                with open(PATH_TO_ARCHIVE_LOG, "r") as file:
                                     lines = file.readlines()
                                 lines.remove("youtube {}\n".format(id_to_remove))
                                 print("Removed 'youtube {}' from archive.log".format(id_to_remove))
                                 message_to_send = message_to_send + "Removed 'youtube {}' from archive.log\n".format(
                                     id_to_remove)
-                                with open(path_to_archive_log, "w") as file:
+                                with open(PATH_TO_ARCHIVE_LOG, "w") as file:
                                     file.writelines(lines)
                                 list_of_titles_by_id.pop(id_to_remove)
                                 message_to_send = message_to_send + "Removed '{}'".format(title)
@@ -885,7 +888,7 @@ class MyClient(discord.Client):
         elif message_content.startswith(";save"):
             if not await self.check_dj(message):
                 return
-            with open(path_to_queues + os.sep + "saved_queue.txt", "w") as file:
+            with open(PATH_TO_QUEUES + os.sep + "saved_queue.txt", "w") as file:
                 url = await self.get_url(message, list_of_titles_by_id.get(current_song))
                 file.write(url + "\n")
                 for song in song_queue:
@@ -896,8 +899,8 @@ class MyClient(discord.Client):
         elif message_content.startswith(";load"):
             if not await self.check_dj(message):
                 return
-            if os.path.exists(path_to_queues + os.sep + "saved_queue.txt"):
-                with open(path_to_queues + os.sep + "saved_queue.txt", "r") as file:
+            if os.path.exists(PATH_TO_QUEUES + os.sep + "saved_queue.txt"):
+                with open(PATH_TO_QUEUES + os.sep + "saved_queue.txt", "r") as file:
                     lines = file.readlines()
                 i = 1
                 for song in lines:
