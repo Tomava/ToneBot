@@ -289,17 +289,15 @@ class MyClient(discord.Client):
                 if jsonId == id:
                     id_found = True
                     song['value'] = int(song['value']) + 1
-                    song['last_played'] = str(time_now)
+                    song['latest'] = str(time_now)
                     song_history['sum'] = song_history['sum'] + 1
             if not id_found:
                 song_history['songs'].append(
-                    {'id': id, 'title': title, 'value': 1, "last_played": str(time_now),
-                     "first_played": str(time_now)})
+                    {'id': id, 'title': title, 'value': 1, "first": str(time_now), "latest": str(time_now)})
                 song_history['sum'] = song_history['sum'] + 1
         else:
             song_history = {
-                'songs': [{'id': id, 'title': title, 'value': 1, "last_played": str(time_now),
-                     "first_played": str(time_now)}],
+                'songs': [{'id': id, 'title': title, 'value': 1, "first": str(time_now), "latest": str(time_now)}],
                 'sum': 1}
         with open(PATH_TO_DISCORD + os.sep + "history.json", "w", encoding='utf-8') as history_file:
             json.dump(song_history, history_file, indent=2, ensure_ascii=False)
