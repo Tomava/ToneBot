@@ -282,7 +282,7 @@ class MyClient(discord.Client):
         """
         global song_history
         id_found = False
-        time_now = datetime.isoformat(datetime.now())
+        time_now = datetime.now()
         if song_history != "":
             for song in song_history['songs']:
                 jsonId = song['id']
