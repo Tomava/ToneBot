@@ -299,8 +299,11 @@ class MyClient(discord.Client):
             song_history = {
                 'songs': [{'id': id, 'title': title, 'value': 1, "first": str(time_now), "latest": str(time_now)}],
                 'sum': 1}
+        new_song_history = {"songs": [], "sum": song_history.get("sum")}
+        for song in sorted(song_history.get("songs"), key=lambda x: x.get("first")):
+            new_song_history.get("songs").append(song)
         with open(PATH_TO_DISCORD + os.sep + "history.json", "w", encoding='utf-8') as history_file:
-            json.dump(song_history, history_file, indent=2, ensure_ascii=False)
+            json.dump(new_song_history, history_file, indent=2, ensure_ascii=False)
 
     async def check_queue(self, voice_channel, message):
         """
