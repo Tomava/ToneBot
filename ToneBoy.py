@@ -263,7 +263,7 @@ class MyClient(discord.Client):
         current_song = id
         print(title)
         loop = asyncio.get_event_loop()
-        # Play the song that just got downloaded
+        # Play the song that just got downloaded (iterate because file type could differ)
         for file in os.listdir(PATH_TO_SONGS):
             if file.count(id) > 0 and file.count("json") == 0:
                 voice_channel.play(discord.FFmpegPCMAudio(PATH_TO_SONGS + os.sep + file),
