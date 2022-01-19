@@ -1,6 +1,6 @@
 import discord
 import asyncio
-import youtube_dl
+import yt_dlp
 from discord.utils import get
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
@@ -193,12 +193,12 @@ class MyClient(discord.Client):
         }
 
         # Downloading song and getting it's title
-        with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             print("Downloading song")
             await message.channel.send("Downloading song")
             try:
                 ydl.download([url])
-                info_dict = ydl.extract_info(url, download=False)
+                info_dict = yt_dlp.YoutubeDL().extract_info(url, download=False, process=False)
                 title = info_dict.get('title', None)
                 id = info_dict.get('id', None)
             except:
@@ -266,6 +266,7 @@ class MyClient(discord.Client):
         # Play the song that just got downloaded (iterate because file type could differ)
         for file in os.listdir(PATH_TO_SONGS):
             if file.count(id) > 0 and file.count("json") == 0:
+                await self.join_voice_channel(message, False)
                 voice_channel.play(discord.FFmpegPCMAudio(PATH_TO_SONGS + os.sep + file),
                                    after=lambda e: loop.create_task(self.check_queue(voice_channel, message)))
                 voice_channel.source = discord.PCMVolumeTransformer(voice_channel.source)
