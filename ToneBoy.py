@@ -198,7 +198,8 @@ class MyClient(discord.Client):
             await message.channel.send("Downloading song")
             try:
                 ydl.download([url])
-                info_dict = yt_dlp.YoutubeDL().extract_info(url, download=False, process=False)
+                info_dict = yt_dlp.YoutubeDL().extract_info(url, download=False)
+                info_dict = yt_dlp.YoutubeDL().sanitize_info(info_dict)
                 title = info_dict.get('title', None)
                 id = info_dict.get('id', None)
             except:
