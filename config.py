@@ -76,7 +76,7 @@ with open(PATH_TO_ARCHIVE_LOG, "r") as file:
         if line.count("youtube") > 0:
             song_id = str(line).split(" ")[1].strip()
             try:
-                with open(PATH_TO_SONGS + os.sep + song_id + '.info.json') as metaFile:
+                with open(PATH_TO_SONGS + os.sep + song_id + '.info.json', encoding="utf-8") as metaFile:
                     file = json.load(metaFile)
                     title = file['title']
             except (FileNotFoundError, PermissionError):
