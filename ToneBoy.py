@@ -198,8 +198,9 @@ class MyClient(discord.Client):
             await message.channel.send("Downloading song")
             try:
                 ydl.download([url])
-                info_dict = yt_dlp.YoutubeDL().extract_info(url, download=False)
-                info_dict = yt_dlp.YoutubeDL().sanitize_info(info_dict)
+                ydl_opts.pop('download_archive')
+                info_dict = ydl.extract_info(url, download=False)
+                info_dict = ydl.sanitize_info(info_dict)
                 title = info_dict.get('title', None)
                 id = info_dict.get('id', None)
             except:
@@ -285,7 +286,7 @@ class MyClient(discord.Client):
         global song_history
         id_found = False
         time_now = datetime.now()
-        if song_history != "":
+        if song_history is not None and song_history != {}:
             for song in song_history['songs']:
                 jsonId = song['id']
                 if jsonId == id:
@@ -293,6 +294,7 @@ class MyClient(discord.Client):
                     song['value'] = int(song['value']) + 1
                     song['latest'] = str(time_now)
                     song_history['sum'] = song_history['sum'] + 1
+                    break
             if not id_found:
                 song_history['songs'].append(
                     {'id': id, 'title': title, 'value': 1, "first": str(time_now), "latest": str(time_now)})
@@ -375,7 +377,7 @@ class MyClient(discord.Client):
         """
         try:
             # Get title
-            with open(PATH_TO_SONGS + os.sep + song_id + '.info.json') as metaFile:
+            with open(PATH_TO_SONGS + os.sep + song_id + '.info.json', encoding="utf-8") as metaFile:
                 file = json.load(metaFile)
                 title = file['title']
                 length = file['duration']
@@ -957,5 +959,6 @@ class MyClient(discord.Client):
                 await self.play_song(message, url, True)
 
 
-client = MyClient()
+intents = discord.Intents.all()
+client = MyClient(intents=intents)
 client.run(token)
