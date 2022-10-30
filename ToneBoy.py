@@ -183,7 +183,6 @@ class MyClient(discord.Client):
         ydl_opts = {
             'outtmpl': PATH_TO_SONGS + os.sep + '%(id)s.%(ext)s',
             'format': 'bestaudio/best',
-            'download_archive': PATH_TO_ARCHIVE_LOG,
             'writeinfojson': 'True',
             'noplaylist': 'True',
             'postprocessors': [{
@@ -197,12 +196,12 @@ class MyClient(discord.Client):
             print("Downloading song")
             await message.channel.send("Downloading song")
             try:
-                ydl.download([url])
-                ydl_opts.pop('download_archive')
                 info_dict = ydl.extract_info(url, download=False)
                 info_dict = ydl.sanitize_info(info_dict)
-                title = info_dict.get('title', None)
                 id = info_dict.get('id', None)
+                ydl_opts['download_archive'] = PATH_TO_ARCHIVE_LOG
+
+                ydl.download([url])
             except:
                 await message.channel.send("Couldn't download that song")
                 return None
