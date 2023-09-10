@@ -2,4 +2,3 @@ music.py
 __pycache__/
 *.env
 .idea
-docker-compose-pi.yaml
