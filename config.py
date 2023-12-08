@@ -41,11 +41,12 @@ list_of_titles_by_id = {}
 current_song = ""
 
 PATH_TO_DISCORD = "Discord"
-PATH_TO_BINDS = PATH_TO_DISCORD + os.sep + "listOfBinds"
-PATH_TO_QUEUES = PATH_TO_DISCORD + os.sep + "queues"
-PATH_TO_ARCHIVE_LOG = PATH_TO_DISCORD + os.sep + "archive.log"
-PATH_TO_SONGS = PATH_TO_DISCORD + os.sep + "songs"
-PATH_TO_HISTORY = PATH_TO_DISCORD + os.sep + "history.json"
+PATH_TO_DATA = PATH_TO_DISCORD + os.sep + "data"
+PATH_TO_BINDS = PATH_TO_DATA + os.sep + "listOfBinds"
+PATH_TO_QUEUES = PATH_TO_DATA + os.sep + "queues"
+PATH_TO_ARCHIVE_LOG = PATH_TO_DATA + os.sep + "archive.log"
+PATH_TO_SONGS = PATH_TO_DATA + os.sep + "songs"
+PATH_TO_HISTORY = PATH_TO_DATA + os.sep + "history.json"
 
 # Create the directories and files if they don't exist
 if not os.path.exists(PATH_TO_SONGS):
