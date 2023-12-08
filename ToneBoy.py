@@ -11,7 +11,7 @@ import random
 from urllib.parse import urlsplit
 from config import *
 
-load_dotenv(PATH_TO_DISCORD + os.sep + "ToneBoyToken.env")
+load_dotenv()
 token = os.getenv('DISCORD_TOKEN')
 
 

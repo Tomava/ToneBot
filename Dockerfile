@@ -11,6 +11,7 @@ USER discord
 
 WORKDIR /home/discord
 
+COPY .env ./
 COPY *.py ./
 COPY requirements.txt ./
 
