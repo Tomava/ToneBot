@@ -1,6 +1,5 @@
 import json
 import os
-from pathlib import Path
 
 LIST_OF_COMMANDS = {";join": "Join the voice channel you're on",
                     ";play / ;pl x": "Play the song x (x can be bind, youtube url or youtube title)",
@@ -41,14 +40,12 @@ binds_by_link = {}
 list_of_titles_by_id = {}
 current_song = ""
 
-# Paths to different directories
-# Will work on all platforms
-HOME = str(Path.home())
-PATH_TO_DISCORD = HOME + os.sep + "Discord"
+PATH_TO_DISCORD = "Discord"
 PATH_TO_BINDS = PATH_TO_DISCORD + os.sep + "listOfBinds"
 PATH_TO_QUEUES = PATH_TO_DISCORD + os.sep + "queues"
 PATH_TO_ARCHIVE_LOG = PATH_TO_DISCORD + os.sep + "archive.log"
 PATH_TO_SONGS = PATH_TO_DISCORD + os.sep + "songs"
+PATH_TO_HISTORY = PATH_TO_DISCORD + os.sep + "history.json"
 
 # Create the directories and files if they don't exist
 if not os.path.exists(PATH_TO_SONGS):
@@ -58,10 +55,10 @@ if not os.path.exists(PATH_TO_QUEUES):
 if not os.path.exists(PATH_TO_BINDS):
     with open(PATH_TO_BINDS, "w") as file:
         file.close()
-if not os.path.exists(PATH_TO_DISCORD + os.sep + "history.json"):
-    with open(PATH_TO_DISCORD + os.sep + "history.json", "w") as file:
+if not os.path.exists(PATH_TO_HISTORY):
+    with open(PATH_TO_HISTORY, "w") as file:
         file.close()
-with open(PATH_TO_DISCORD + os.sep + "history.json", "r", encoding='utf-8') as file:
+with open(PATH_TO_HISTORY, "r", encoding='utf-8') as file:
     data = file.read()
 if data == "":
     song_history = {}

@@ -9,6 +9,7 @@ import json
 from dotenv import load_dotenv
 import random
 from urllib.parse import urlsplit
+from pathlib import Path
 from config import *
 
 load_dotenv()

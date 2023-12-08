@@ -1,15 +1,15 @@
 FROM python:3.11-buster
 
-RUN useradd -u 1000 discord
-RUN mkdir /home/discord
-RUN chown -R discord /home/discord
+#RUN groupadd -r -g 1000 discord
+#RUN useradd -u 1000 -g 1000 -m discord
+#RUN chown -R discord /app
 
 RUN apt update && apt install -y ffmpeg
 
-USER discord
+# Uncomment if not running rootless Docker
+#USER discord
 
-
-WORKDIR /home/discord
+WORKDIR /app
 
 COPY .env ./
 COPY *.py ./
