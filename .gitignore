@@ -2,3 +2,7 @@ music.py
 __pycache__/
 *.env
 .idea
+*.log
+listOfBinds
+queues/
+songs/
