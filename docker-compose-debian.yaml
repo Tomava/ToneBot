@@ -5,6 +5,6 @@ services:
       dockerfile: Dockerfile
     volumes:
       - /home/debian/ToneBot/data:/app/Discord/data
-      - /media/archive/Discord/songs:/app/Discord/data/songs
+      - /media/appdata/ToneBot/songs:/app/Discord/data/songs
       - /etc/localtime:/etc/localtime
     restart: always
