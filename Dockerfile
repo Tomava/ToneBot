@@ -1,4 +1,4 @@
-FROM python:3.11-buster
+FROM python:3.14
 
 #RUN groupadd -r -g 1000 discord
 #RUN useradd -u 1000 -g 1000 -m discord
@@ -15,6 +15,6 @@ COPY .env ./
 COPY *.py ./
 COPY requirements.txt ./
 
-RUN pip3.11 install -r requirements.txt
+RUN pip3.14 install -r requirements.txt
 
 CMD ["python3", "ToneBoy.py"]
